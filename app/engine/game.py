@@ -40,6 +40,9 @@ class MahjongGame:
         self.game_log: List[GameAction] = []
         self.is_game_over: bool = False
         self.winner: Optional[int] = None
+        self.last_discard: Optional[Tile] = None  # Track last discarded tile for ron
+        self.last_discard_player: Optional[int] = None  # Who discarded it
+        self.pending_calls: List[Dict[str, Any]] = []  # Pending meld/ron calls
 
     def start_new_round(self) -> None:
         """Start a new round of mahjong."""
@@ -129,6 +132,10 @@ class MahjongGame:
         tile = player.discard_by_index(tile_idx)
 
         if tile:
+            # Store last discard for ron/meld calls
+            self.last_discard = tile
+            self.last_discard_player = player_idx
+
             self.log_action(
                 player=player_idx,
                 action_type="discard",
@@ -136,16 +143,8 @@ class MahjongGame:
                 metadata={"hand_size": len(player.hand)},
             )
 
-            # Check for win (ron)
-            for i, p in enumerate(self.players):
-                if i != player_idx:
-                    test_hand = p.hand + [tile]
-                    if HandEvaluator.is_complete_hand(test_hand):
-                        # Ron is possible
-                        pass  # In actual game, would prompt for ron
-
-            # Move to next player
-            self.advance_turn()
+            # Don't auto-advance turn - wait for potential ron/meld calls
+            # The caller should check for calls and then advance manually
 
         return tile
 
@@ -192,6 +191,198 @@ class MahjongGame:
 
         return False
 
+    def check_ron(self, player_idx: int) -> bool:
+        """
+        Check if the specified player can declare ron on the last discard.
+
+        Args:
+            player_idx: Player index to check
+
+        Returns:
+            True if ron is possible
+        """
+        if not self.last_discard or self.last_discard_player is None:
+            return False
+
+        # Can't ron your own discard
+        if player_idx == self.last_discard_player:
+            return False
+
+        player = self.players[player_idx]
+
+        # Check if hand would be complete with the last discard
+        test_hand = player.hand + [self.last_discard]
+        return HandEvaluator.is_complete_hand(test_hand)
+
+    def check_all_ron(self) -> List[int]:
+        """
+        Check which players can declare ron on the last discard.
+
+        Returns:
+            List of player indices who can declare ron
+        """
+        if not self.last_discard or self.last_discard_player is None:
+            return []
+
+        ron_players = []
+        for i in range(4):
+            if self.check_ron(i):
+                ron_players.append(i)
+
+        return ron_players
+
+    def declare_ron(self, player_idx: int) -> bool:
+        """
+        Player declares ron on the last discard.
+
+        Args:
+            player_idx: Player declaring ron
+
+        Returns:
+            True if successful
+        """
+        if not self.check_ron(player_idx):
+            return False
+
+        # Calculate score
+        player = self.players[player_idx]
+        score_info = HandEvaluator.calculate_basic_score(
+            player,
+            self.last_discard,
+            is_tsumo=False,
+            player_wind=player.position,
+            round_wind=self.round_wind,
+        )
+
+        # Transfer points from discard player to winner
+        loser_idx = self.last_discard_player
+        points = score_info.get("points", 1000)
+
+        # Handle cost structure from mahjong library
+        if "cost" in score_info and score_info["cost"]:
+            cost = score_info["cost"]
+            if "main" in cost:
+                points = cost["main"]
+
+        self.players[loser_idx].score -= points
+        player.score += points
+
+        # Mark game as won
+        self.winner = player_idx
+        self.is_game_over = True
+
+        self.log_action(
+            player=player_idx,
+            action_type="ron",
+            tile=str(self.last_discard),
+            metadata={
+                "loser": loser_idx,
+                "hand": [str(t) for t in player.hand],
+                "winning_tile": str(self.last_discard),
+                "score_info": score_info,
+            },
+        )
+
+        return True
+
+    def check_tsumo(self, player_idx: int) -> bool:
+        """
+        Check if the player can declare tsumo (self-draw win).
+        Player must have just drawn a tile (14 tiles in hand).
+
+        Args:
+            player_idx: Player to check
+
+        Returns:
+            True if tsumo is possible
+        """
+        player = self.players[player_idx]
+
+        # Must have 14 tiles (13 + just drawn)
+        if len(player.hand) != 14:
+            return False
+
+        return HandEvaluator.is_complete_hand(player.hand)
+
+    def declare_tsumo(self, player_idx: int) -> bool:
+        """
+        Player declares tsumo (self-draw win).
+
+        Args:
+            player_idx: Player declaring tsumo
+
+        Returns:
+            True if successful
+        """
+        if not self.check_tsumo(player_idx):
+            return False
+
+        player = self.players[player_idx]
+
+        # The winning tile is the last tile drawn (last in hand)
+        winning_tile = player.hand[-1] if player.hand else None
+
+        # Calculate score
+        score_info = HandEvaluator.calculate_basic_score(
+            player,
+            winning_tile,
+            is_tsumo=True,
+            player_wind=player.position,
+            round_wind=self.round_wind,
+        )
+
+        # Handle cost structure from mahjong library
+        if "cost" in score_info and score_info["cost"]:
+            cost = score_info["cost"]
+            # In tsumo, cost structure is different
+            # "main" is what dealer pays or what winner gets from dealer
+            # "additional" is what non-dealers pay
+            if player.position == 0:  # Dealer wins
+                # All players pay the same (main value)
+                points_per_player = cost.get("main", 0)
+                for i in range(4):
+                    if i != player_idx:
+                        self.players[i].score -= points_per_player
+                        player.score += points_per_player
+            else:  # Non-dealer wins
+                # Dealer pays "main", others pay "additional"
+                dealer_payment = cost.get("main", 0)
+                other_payment = cost.get("additional", 0)
+
+                for i in range(4):
+                    if i != player_idx:
+                        if i == self.dealer:
+                            self.players[i].score -= dealer_payment
+                            player.score += dealer_payment
+                        else:
+                            self.players[i].score -= other_payment
+                            player.score += other_payment
+        else:
+            # Fallback: simple split
+            points = score_info.get("points", 1000)
+            points_per_player = points // 3
+            for i in range(4):
+                if i != player_idx:
+                    self.players[i].score -= points_per_player
+                    player.score += points_per_player
+
+        # Mark game as won
+        self.winner = player_idx
+        self.is_game_over = True
+
+        self.log_action(
+            player=player_idx,
+            action_type="tsumo",
+            tile=str(winning_tile) if winning_tile else None,
+            metadata={
+                "hand": [str(t) for t in player.hand],
+                "winning_tile": str(winning_tile) if winning_tile else None,
+                "score_info": score_info,
+            },
+        )
+
+        return True
+
     def check_tenpai(self, player_idx: int) -> List[Tile]:
         """
         Check which tiles the player is waiting for.
@@ -226,6 +417,368 @@ class MahjongGame:
             return True
 
         return False
+
+    def check_pon(self, player_idx: int) -> bool:
+        """
+        Check if the specified player can call pon on the last discard.
+
+        Args:
+            player_idx: Player index to check
+
+        Returns:
+            True if pon is possible
+        """
+        if not self.last_discard or self.last_discard_player is None:
+            return False
+
+        # Can't call your own discard
+        if player_idx == self.last_discard_player:
+            return False
+
+        player = self.players[player_idx]
+
+        # Can't call if already in riichi
+        if player.is_riichi:
+            return False
+
+        # Need at least 2 matching tiles in hand
+        matching_count = sum(1 for t in player.hand if t == self.last_discard)
+        return matching_count >= 2
+
+    def declare_pon(self, player_idx: int) -> bool:
+        """
+        Player declares pon on the last discard.
+
+        Args:
+            player_idx: Player declaring pon
+
+        Returns:
+            True if successful
+        """
+        if not self.check_pon(player_idx):
+            return False
+
+        player = self.players[player_idx]
+
+        # Remove 2 matching tiles from hand
+        tiles_for_meld = []
+        removed_count = 0
+        for i in range(len(player.hand) - 1, -1, -1):
+            if player.hand[i] == self.last_discard and removed_count < 2:
+                tiles_for_meld.append(player.hand.pop(i))
+                removed_count += 1
+
+        # Add the called tile
+        tiles_for_meld.append(self.last_discard)
+
+        # Create meld
+        meld = Meld(
+            type="pon",
+            tiles=tiles_for_meld,
+            from_player=self.last_discard_player,
+        )
+        player.melds.append(meld)
+
+        # Remove last discard from discarder's pile
+        if self.players[self.last_discard_player].discards:
+            self.players[self.last_discard_player].discards.pop()
+
+        self.log_action(
+            player=player_idx,
+            action_type="pon",
+            tile=str(self.last_discard),
+            metadata={
+                "from_player": self.last_discard_player,
+                "meld_tiles": [str(t) for t in tiles_for_meld],
+            },
+        )
+
+        # Clear last discard
+        self.last_discard = None
+        self.last_discard_player = None
+
+        # Player must discard immediately (no draw)
+        self.current_player = player_idx
+
+        return True
+
+    def check_chi(self, player_idx: int) -> List[List[Tile]]:
+        """
+        Check if the specified player can call chi on the last discard.
+        Chi can only be called from the previous player (kamicha).
+
+        Args:
+            player_idx: Player index to check
+
+        Returns:
+            List of possible chi combinations (each is a list of 3 tiles)
+        """
+        if not self.last_discard or self.last_discard_player is None:
+            return []
+
+        # Can only chi from previous player (kamicha)
+        if (self.last_discard_player + 1) % 4 != player_idx:
+            return []
+
+        # Can't chi honors
+        if self.last_discard.is_honor:
+            return []
+
+        player = self.players[player_idx]
+
+        # Can't call if already in riichi
+        if player.is_riichi:
+            return []
+
+        tile_type = self.last_discard.type
+        tile_num = self.last_discard.number
+
+        possible_chis = []
+
+        # Pattern 1: called tile is the lowest (e.g., 1-2-3 with 1 called)
+        if tile_num <= 7:
+            tile2 = Tile(tile_type, tile_num + 1)
+            tile3 = Tile(tile_type, tile_num + 2)
+            if tile2 in player.hand and tile3 in player.hand:
+                possible_chis.append([self.last_discard, tile2, tile3])
+
+        # Pattern 2: called tile is in the middle (e.g., 1-2-3 with 2 called)
+        if 2 <= tile_num <= 8:
+            tile1 = Tile(tile_type, tile_num - 1)
+            tile3 = Tile(tile_type, tile_num + 1)
+            if tile1 in player.hand and tile3 in player.hand:
+                possible_chis.append([tile1, self.last_discard, tile3])
+
+        # Pattern 3: called tile is the highest (e.g., 1-2-3 with 3 called)
+        if tile_num >= 3:
+            tile1 = Tile(tile_type, tile_num - 2)
+            tile2 = Tile(tile_type, tile_num - 1)
+            if tile1 in player.hand and tile2 in player.hand:
+                possible_chis.append([tile1, tile2, self.last_discard])
+
+        return possible_chis
+
+    def declare_chi(self, player_idx: int, chi_pattern: List[Tile]) -> bool:
+        """
+        Player declares chi on the last discard.
+
+        Args:
+            player_idx: Player declaring chi
+            chi_pattern: The 3-tile pattern chosen (including the called tile)
+
+        Returns:
+            True if successful
+        """
+        possible_chis = self.check_chi(player_idx)
+        if not possible_chis:
+            return False
+
+        # Verify the chosen pattern is valid
+        pattern_valid = False
+        for possible in possible_chis:
+            if len(chi_pattern) == 3 and all(
+                chi_pattern[i] == possible[i] for i in range(3)
+            ):
+                pattern_valid = True
+                break
+
+        if not pattern_valid:
+            return False
+
+        player = self.players[player_idx]
+
+        # Remove the tiles from hand (except the called tile)
+        tiles_for_meld = []
+        for tile in chi_pattern:
+            if tile == self.last_discard:
+                tiles_for_meld.append(tile)
+            else:
+                if tile in player.hand:
+                    player.hand.remove(tile)
+                    tiles_for_meld.append(tile)
+
+        # Create meld
+        meld = Meld(
+            type="chi",
+            tiles=tiles_for_meld,
+            from_player=self.last_discard_player,
+        )
+        player.melds.append(meld)
+
+        # Remove last discard from discarder's pile
+        if self.players[self.last_discard_player].discards:
+            self.players[self.last_discard_player].discards.pop()
+
+        self.log_action(
+            player=player_idx,
+            action_type="chi",
+            tile=str(self.last_discard),
+            metadata={
+                "from_player": self.last_discard_player,
+                "meld_tiles": [str(t) for t in tiles_for_meld],
+            },
+        )
+
+        # Clear last discard
+        self.last_discard = None
+        self.last_discard_player = None
+
+        # Player must discard immediately (no draw)
+        self.current_player = player_idx
+
+        return True
+
+    def check_kan(self, player_idx: int) -> Dict[str, List[Tile]]:
+        """
+        Check if the player can call kan.
+
+        Args:
+            player_idx: Player to check
+
+        Returns:
+            Dictionary with possible kan types:
+            - "daiminkan": List of tiles for open kan from discard
+            - "ankan": List of 4-tile sets for concealed kan
+            - "shouminkan": List of tiles that can be added to existing pon
+        """
+        player = self.players[player_idx]
+        result = {"daiminkan": [], "ankan": [], "shouminkan": []}
+
+        # Daiminkan: open kan from last discard
+        if (
+            self.last_discard
+            and self.last_discard_player is not None
+            and player_idx != self.last_discard_player
+            and not player.is_riichi
+        ):
+            matching_count = sum(1 for t in player.hand if t == self.last_discard)
+            if matching_count == 3:
+                result["daiminkan"] = [self.last_discard]
+
+        # Ankan: concealed kan from hand (only if it's player's turn)
+        if player_idx == self.current_player and not player.is_riichi:
+            tile_counts = Counter(player.hand)
+            for tile, count in tile_counts.items():
+                if count == 4:
+                    result["ankan"].append(tile)
+
+        # Shouminkan: add to existing pon (only if it's player's turn)
+        if player_idx == self.current_player:
+            for meld in player.melds:
+                if meld.type == "pon" and len(meld.tiles) == 3:
+                    # Check if we have the 4th tile in hand
+                    meld_tile = meld.tiles[0]
+                    if meld_tile in player.hand:
+                        result["shouminkan"].append(meld_tile)
+
+        return result
+
+    def declare_kan(
+        self, player_idx: int, kan_type: str, tile: Tile
+    ) -> bool:
+        """
+        Player declares kan.
+
+        Args:
+            player_idx: Player declaring kan
+            kan_type: Type of kan ("daiminkan", "ankan", "shouminkan")
+            tile: The tile for the kan
+
+        Returns:
+            True if successful
+        """
+        kan_options = self.check_kan(player_idx)
+
+        player = self.players[player_idx]
+
+        if kan_type == "daiminkan":
+            if not kan_options["daiminkan"] or tile != self.last_discard:
+                return False
+
+            # Remove 3 matching tiles from hand
+            tiles_for_meld = []
+            removed_count = 0
+            for i in range(len(player.hand) - 1, -1, -1):
+                if player.hand[i] == tile and removed_count < 3:
+                    tiles_for_meld.append(player.hand.pop(i))
+                    removed_count += 1
+
+            # Add the called tile
+            tiles_for_meld.append(tile)
+
+            # Create kan meld
+            meld = Meld(
+                type="kan",
+                tiles=tiles_for_meld,
+                from_player=self.last_discard_player,
+            )
+            player.melds.append(meld)
+
+            # Remove last discard
+            if self.players[self.last_discard_player].discards:
+                self.players[self.last_discard_player].discards.pop()
+
+            self.last_discard = None
+            self.last_discard_player = None
+
+        elif kan_type == "ankan":
+            if tile not in kan_options["ankan"]:
+                return False
+
+            # Remove all 4 tiles from hand
+            tiles_for_meld = [t for t in player.hand if t == tile]
+            player.hand = [t for t in player.hand if t != tile]
+
+            # Create concealed kan meld
+            meld = Meld(type="kan", tiles=tiles_for_meld, from_player=None)
+            player.melds.append(meld)
+
+        elif kan_type == "shouminkan":
+            if tile not in kan_options["shouminkan"]:
+                return False
+
+            # Find the pon meld and upgrade it
+            for meld in player.melds:
+                if (
+                    meld.type == "pon"
+                    and len(meld.tiles) == 3
+                    and meld.tiles[0] == tile
+                ):
+                    # Remove tile from hand
+                    if tile in player.hand:
+                        player.hand.remove(tile)
+                        meld.tiles.append(tile)
+                        meld.type = "kan"
+                        break
+
+        else:
+            return False
+
+        # Draw replacement tile from dead wall
+        if self.dead_wall:
+            replacement_tile = self.dead_wall.pop(0)
+            player.draw_tile(replacement_tile)
+
+            # Reveal new dora indicator
+            if len(self.dead_wall) >= 5:
+                new_dora = self.dead_wall[4]
+                if new_dora not in self.dora_indicators:
+                    self.dora_indicators.append(new_dora)
+
+        self.log_action(
+            player=player_idx,
+            action_type="kan",
+            tile=str(tile),
+            metadata={
+                "kan_type": kan_type,
+                "from_player": self.last_discard_player if kan_type == "daiminkan" else None,
+            },
+        )
+
+        # After kan, player continues their turn (must discard)
+        self.current_player = player_idx
+
+        return True
 
     def log_action(
         self,

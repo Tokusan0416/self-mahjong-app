@@ -48,6 +48,24 @@ def index() -> rx.Component:
                 MahjongState.dora_indicators,
             ),
             rx.divider(),
+            # Pass on calls button (shown when any call is available)
+            rx.cond(
+                MahjongState.can_ron[0] | MahjongState.can_ron[1] | MahjongState.can_ron[2] | MahjongState.can_ron[3] |
+                MahjongState.can_pon[0] | MahjongState.can_pon[1] | MahjongState.can_pon[2] | MahjongState.can_pon[3] |
+                MahjongState.can_chi[0] | MahjongState.can_chi[1] | MahjongState.can_chi[2] | MahjongState.can_chi[3] |
+                MahjongState.can_kan[0] | MahjongState.can_kan[1] | MahjongState.can_kan[2] | MahjongState.can_kan[3],
+                rx.center(
+                    rx.button(
+                        "Pass on All Calls (Continue Game)",
+                        on_click=MahjongState.pass_on_ron,
+                        color_scheme="gray",
+                        size="3",
+                        variant="outline",
+                    ),
+                    padding="8px",
+                ),
+                rx.box(),
+            ),
             # All 4 players' hands in a grid
             rx.grid(
                 # East (Position 0) - Bottom
@@ -58,7 +76,12 @@ def index() -> rx.Component:
                         MahjongState.player_names[0],
                         is_current=MahjongState.current_player == 0,
                         is_interactive=True,
+                        can_ron=MahjongState.can_ron[0],
+                        can_pon=MahjongState.can_pon[0],
+                        can_chi=MahjongState.can_chi[0],
+                        can_kan=MahjongState.can_kan[0],
                     ),
+                    render_melds(MahjongState.player_melds[0]),
                     render_discard_pile(MahjongState.player_discards[0], "East"),
                 ),
                 # South (Position 1) - Right
@@ -69,7 +92,12 @@ def index() -> rx.Component:
                         MahjongState.player_names[1],
                         is_current=MahjongState.current_player == 1,
                         is_interactive=True,
+                        can_ron=MahjongState.can_ron[1],
+                        can_pon=MahjongState.can_pon[1],
+                        can_chi=MahjongState.can_chi[1],
+                        can_kan=MahjongState.can_kan[1],
                     ),
+                    render_melds(MahjongState.player_melds[1]),
                     render_discard_pile(MahjongState.player_discards[1], "South"),
                 ),
                 # West (Position 2) - Top
@@ -80,7 +108,12 @@ def index() -> rx.Component:
                         MahjongState.player_names[2],
                         is_current=MahjongState.current_player == 2,
                         is_interactive=True,
+                        can_ron=MahjongState.can_ron[2],
+                        can_pon=MahjongState.can_pon[2],
+                        can_chi=MahjongState.can_chi[2],
+                        can_kan=MahjongState.can_kan[2],
                     ),
+                    render_melds(MahjongState.player_melds[2]),
                     render_discard_pile(MahjongState.player_discards[2], "West"),
                 ),
                 # North (Position 3) - Left
@@ -91,7 +124,12 @@ def index() -> rx.Component:
                         MahjongState.player_names[3],
                         is_current=MahjongState.current_player == 3,
                         is_interactive=True,
+                        can_ron=MahjongState.can_ron[3],
+                        can_pon=MahjongState.can_pon[3],
+                        can_chi=MahjongState.can_chi[3],
+                        can_kan=MahjongState.can_kan[3],
                     ),
+                    render_melds(MahjongState.player_melds[3]),
                     render_discard_pile(MahjongState.player_discards[3], "North"),
                 ),
                 columns="2",

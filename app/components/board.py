@@ -125,33 +125,52 @@ def render_game_controls() -> rx.Component:
     """
     from ..state import MahjongState
 
-    return rx.hstack(
-        rx.button(
-            "New Game",
-            on_click=MahjongState.start_new_game,
-            color_scheme="blue",
-            size="3",
+    return rx.vstack(
+        rx.hstack(
+            rx.button(
+                "New Game",
+                on_click=MahjongState.start_new_game,
+                color_scheme="blue",
+                size="3",
+            ),
+            rx.button(
+                "Check Tenpai",
+                on_click=MahjongState.check_current_tenpai,
+                color_scheme="green",
+                size="3",
+            ),
+            rx.button(
+                "Declare Riichi",
+                on_click=MahjongState.declare_riichi,
+                color_scheme="orange",
+                size="3",
+            ),
+            rx.button(
+                "Export Log",
+                on_click=MahjongState.export_log,
+                color_scheme="purple",
+                size="3",
+            ),
+            spacing="4",
         ),
-        rx.button(
-            "Check Tenpai",
-            on_click=MahjongState.check_current_tenpai,
-            color_scheme="green",
-            size="3",
-        ),
-        rx.button(
-            "Declare Riichi",
-            on_click=MahjongState.declare_riichi,
-            color_scheme="orange",
-            size="3",
-        ),
-        rx.button(
-            "Export Log",
-            on_click=MahjongState.export_log,
-            color_scheme="purple",
-            size="3",
+        # Ron/Tsumo action buttons
+        rx.cond(
+            MahjongState.can_tsumo,
+            rx.hstack(
+                rx.button(
+                    "🎉 TSUMO! (Self-Draw Win)",
+                    on_click=MahjongState.declare_tsumo,
+                    color_scheme="red",
+                    size="4",
+                    variant="solid",
+                ),
+                spacing="4",
+            ),
+            rx.box(),
         ),
         spacing="4",
         padding="16px",
+        width="100%",
     )
 
 

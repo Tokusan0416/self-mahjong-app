@@ -27,6 +27,7 @@ def render_tile_clickable(tile_str: str, player_idx: int) -> rx.Component:
         border="2px solid #333",
         border_radius="4px",
         background="white",
+        color="#1a202c",
         font_size="18px",
         font_weight="bold",
         font_family="monospace",
@@ -56,6 +57,7 @@ def render_tile_static(tile_str: str) -> rx.Component:
         border="2px solid #333",
         border_radius="4px",
         background="white",
+        color="#1a202c",
         font_size="18px",
         font_weight="bold",
         font_family="monospace",
@@ -68,6 +70,10 @@ def render_hand(
     player_name: str,
     is_current: bool = False,
     is_interactive: bool = False,
+    can_ron: bool = False,
+    can_pon: bool = False,
+    can_chi: bool = False,
+    can_kan: bool = False,
 ) -> rx.Component:
     """
     Render a player's hand.
@@ -78,10 +84,16 @@ def render_hand(
         player_name: Name/position of the player
         is_current: Whether this is the current player
         is_interactive: Whether tiles are clickable
+        can_ron: Whether this player can declare ron
+        can_pon: Whether this player can declare pon
+        can_chi: Whether this player can declare chi
+        can_kan: Whether this player can declare kan
 
     Returns:
         Reflex component for the hand
     """
+    from ..state import MahjongState
+
     # Use rx.cond to determine if tiles should be clickable
     tiles_display = rx.cond(
         is_interactive & is_current,
@@ -111,6 +123,60 @@ def render_hand(
             margin_bottom="8px",
         ),
         tiles_display,
+        # Call buttons (shown when available)
+        rx.vstack(
+            rx.cond(
+                can_ron,
+                rx.button(
+                    "🎉 RON! (Win on Discard)",
+                    on_click=lambda: MahjongState.declare_ron(player_idx),
+                    color_scheme="red",
+                    size="3",
+                    variant="solid",
+                    width="100%",
+                ),
+                rx.box(),
+            ),
+            rx.cond(
+                can_kan,
+                rx.button(
+                    "📦 KAN (Quad)",
+                    on_click=lambda: MahjongState.declare_pon(player_idx),  # TODO: Implement declare_kan
+                    color_scheme="orange",
+                    size="2",
+                    variant="solid",
+                    width="100%",
+                ),
+                rx.box(),
+            ),
+            rx.cond(
+                can_pon,
+                rx.button(
+                    "🔺 PON (Triple)",
+                    on_click=lambda: MahjongState.declare_pon(player_idx),
+                    color_scheme="purple",
+                    size="2",
+                    variant="solid",
+                    width="100%",
+                ),
+                rx.box(),
+            ),
+            rx.cond(
+                can_chi,
+                rx.button(
+                    "🔄 CHI (Sequence)",
+                    on_click=lambda: MahjongState.declare_chi(player_idx),
+                    color_scheme="blue",
+                    size="2",
+                    variant="solid",
+                    width="100%",
+                ),
+                rx.box(),
+            ),
+            spacing="2",
+            margin_top="8px",
+            width="100%",
+        ),
         padding="16px",
         border_radius="8px",
         background="#f7fafc",
@@ -119,32 +185,33 @@ def render_hand(
     )
 
 
-def render_melds(melds: List[dict]) -> rx.Component:
+def render_melds(melds: List[str]) -> rx.Component:
     """
     Render called melds (pon, chi, kan).
 
     Args:
-        melds: List of meld dictionaries
+        melds: List of meld strings (e.g., "PON: 1m 1m 1m")
 
     Returns:
         Reflex component for melds
     """
-    if not melds:
-        return rx.box()
-
-    meld_components = []
-    for meld in melds:
-        meld_type = meld.get("type", "")
-        tiles = meld.get("tiles", [])
-
-        meld_box = rx.hstack(
-            rx.badge(meld_type.upper(), color_scheme="green"),
-            *[rx.text(tile, font_weight="bold") for tile in tiles],
-            padding="4px 8px",
-            border="1px solid #48bb78",
-            border_radius="4px",
-            margin="2px",
-        )
-        meld_components.append(meld_box)
-
-    return rx.vstack(*meld_components, align_items="flex-start")
+    return rx.cond(
+        melds.length() > 0,
+        rx.vstack(
+            rx.text("Melds:", font_weight="bold", font_size="sm", color="gray"),
+            rx.foreach(
+                melds,
+                lambda meld_str: rx.badge(
+                    meld_str,
+                    color_scheme="green",
+                    padding="4px 8px",
+                    margin="2px",
+                    font_size="sm",
+                )
+            ),
+            align_items="flex-start",
+            padding="8px",
+            margin="4px",
+        ),
+        rx.box(),
+    )

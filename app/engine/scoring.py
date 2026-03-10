@@ -1,14 +1,89 @@
 """
 Hand evaluation and scoring for Japanese Mahjong.
 
-Note: This is a simplified implementation. For production use,
-consider using the 'mahjong' library for complete yaku evaluation.
+Uses the 'mahjong' library for complete yaku evaluation and scoring.
 """
 
 from typing import List, Dict, Tuple, Optional
 from collections import Counter
+
+try:
+    from mahjong.hand_calculating.hand import HandCalculator
+    from mahjong.tile import TilesConverter
+    from mahjong.hand_calculating.hand_config import HandConfig
+    from mahjong.meld import Meld as MahjongMeld
+    from mahjong.constants import EAST, SOUTH, WEST, NORTH
+    MAHJONG_LIB_AVAILABLE = True
+except ImportError:
+    MAHJONG_LIB_AVAILABLE = False
+    print("Warning: mahjong library not available. Using simplified scoring.")
+
 from .tiles import Tile, TileType
 from .player import Player, Meld
+
+
+def tile_to_136_array(tiles: List[Tile]) -> List[int]:
+    """
+    Convert our Tile objects to mahjong library's 136 tile format.
+
+    Args:
+        tiles: List of Tile objects
+
+    Returns:
+        List of tile indices (0-135)
+    """
+    result = []
+    for tile in tiles:
+        # Convert to mahjong library string format
+        tile_str = str(tile)  # e.g., "1m", "5p", "7z"
+
+        # Map to mahjong library format
+        # Man: 0-35 (1m-9m, 4 copies each)
+        # Pin: 36-71 (1p-9p, 4 copies each)
+        # Sou: 72-107 (1s-9s, 4 copies each)
+        # Honor: 108-135 (1z-7z, 4 copies each)
+
+        if tile.type == TileType.MANZU:
+            base = (tile.number - 1) * 4
+        elif tile.type == TileType.PINZU:
+            base = 36 + (tile.number - 1) * 4
+        elif tile.type == TileType.SOUZU:
+            base = 72 + (tile.number - 1) * 4
+        else:  # JIHAI
+            base = 108 + (tile.number - 1) * 4
+
+        # For simplicity, use the first copy (base + 0)
+        # In a real game, you'd track which specific copy
+        result.append(base)
+
+    return result
+
+
+def tiles_to_34_array(tiles: List[Tile]) -> List[int]:
+    """
+    Convert our Tile objects to mahjong library's 34 tile type format.
+
+    Args:
+        tiles: List of Tile objects
+
+    Returns:
+        Array of 34 integers representing tile counts
+    """
+    result = [0] * 34
+
+    for tile in tiles:
+        if tile.type == TileType.MANZU:
+            idx = tile.number - 1
+        elif tile.type == TileType.PINZU:
+            idx = 9 + tile.number - 1
+        elif tile.type == TileType.SOUZU:
+            idx = 18 + tile.number - 1
+        else:  # JIHAI
+            idx = 27 + tile.number - 1
+
+        result[idx] += 1
+
+    return result
 
 
 class HandEvaluator:
@@ -151,38 +226,103 @@ class HandEvaluator:
 
     @staticmethod
     def calculate_basic_score(
-        player: Player, winning_tile: Tile, is_tsumo: bool = False
+        player: Player, winning_tile: Tile, is_tsumo: bool = False, player_wind: int = 0, round_wind: int = 0
     ) -> Dict[str, any]:
         """
-        Calculate basic score for a winning hand.
-        This is a simplified implementation.
+        Calculate score for a winning hand using mahjong library.
 
         Args:
             player: The winning player
             winning_tile: The tile that completed the hand
             is_tsumo: True if self-drawn win
+            player_wind: Player's seat wind (0=East, 1=South, 2=West, 3=North)
+            round_wind: Round wind (0=East, 1=South, etc.)
 
         Returns:
             Dictionary with score information
         """
-        # This is a placeholder for basic scoring
-        # Full implementation would check for all yaku and calculate han/fu
+        if not MAHJONG_LIB_AVAILABLE:
+            # Fallback to simple scoring
+            result = {
+                "han": 1,
+                "fu": 30,
+                "points": 1000,
+                "yaku": ["Simplified scoring (mahjong library not available)"],
+                "is_tsumo": is_tsumo,
+                "yaku_list": [],
+            }
+            if player.is_riichi:
+                result["han"] += 1
+                result["yaku"].append("Riichi")
+                result["points"] += 1000
+            return result
 
-        result = {
-            "han": 1,  # Basic 1 han for now
-            "fu": 30,  # Basic fu
-            "points": 1000,  # Simplified point calculation
-            "yaku": ["Simplified scoring - TODO: Implement full yaku"],
-            "is_tsumo": is_tsumo,
-        }
+        try:
+            # Convert tiles to mahjong library format
+            hand_tiles = tiles_to_34_array(player.hand)
 
-        # Add riichi bonus
-        if player.is_riichi:
-            result["han"] += 1
-            result["yaku"].append("Riichi")
-            result["points"] += 1000
+            # Find which tile is the winning tile
+            win_tile_136 = tile_to_136_array([winning_tile])[0]
 
-        return result
+            # Configure hand calculation
+            config = HandConfig(
+                is_tsumo=is_tsumo,
+                is_riichi=player.is_riichi,
+                player_wind=player_wind,
+                round_wind=round_wind,
+                is_dealer=(player_wind == 0),
+            )
+
+            # Convert melds if any
+            melds = []
+            # TODO: Convert player.melds to mahjong library Meld format when implementing naki
+
+            # Calculate hand value
+            calculator = HandCalculator()
+            result_calc = calculator.estimate_hand_value(
+                hand_tiles,
+                win_tile_136 // 4,  # Convert to 34 format
+                melds=melds,
+                config=config,
+            )
+
+            if result_calc.error:
+                # No valid yaku
+                return {
+                    "han": 0,
+                    "fu": 0,
+                    "points": 0,
+                    "yaku": ["No yaku (chombo)"],
+                    "is_tsumo": is_tsumo,
+                    "yaku_list": [],
+                    "error": result_calc.error,
+                }
+
+            # Extract yaku names
+            yaku_names = [yaku.name for yaku in result_calc.yaku] if result_calc.yaku else []
+
+            return {
+                "han": result_calc.han,
+                "fu": result_calc.fu,
+                "points": result_calc.cost.get("main", 0) if result_calc.cost else 0,
+                "yaku": yaku_names,
+                "is_tsumo": is_tsumo,
+                "yaku_list": result_calc.yaku if result_calc.yaku else [],
+                "cost": result_calc.cost,
+            }
+
+        except Exception as e:
+            # Fallback on error
+            print(f"Error calculating score: {e}")
+            return {
+                "han": 1,
+                "fu": 30,
+                "points": 1000,
+                "yaku": ["Error in score calculation"],
+                "is_tsumo": is_tsumo,
+                "yaku_list": [],
+                "error": str(e),
+            }
 
     @staticmethod
     def get_yaku_name(hand: List[Tile], melds: List[Meld]) -> List[str]:

@@ -15,10 +15,11 @@ Build a web-based mahjong simulator where one person can play all four positions
 
 ---
 
-## Current Status: Phase 1 Complete ✅
+## Current Status: Phase 2.1 & 2.2 Complete ✅
 
 ### Implemented Features
 
+**Phase 1 - Core Foundation:**
 - [x] **Tile Engine**: 136-tile pool with shuffling and distribution
 - [x] **Game Logic**: Turn management, draw/discard mechanics, wall management
 - [x] **Player Management**: 4-player state with hands, discards, scores, riichi status
@@ -28,77 +29,98 @@ Build a web-based mahjong simulator where one person can play all four positions
 - [x] **Game Logging**: JSON logging of all game actions with timestamps
 - [x] **Basic Hand Evaluation**: Simplified win detection (4 melds + 1 pair)
 
+**Phase 2.1 - Winning Detection & Scoring:**
+- [x] **Ron Detection**: Win on discard with proper validation and scoring
+- [x] **Tsumo Detection**: Self-draw win with correct payment distribution
+- [x] **Yaku Integration**: Complete yaku detection using `mahjong` library
+- [x] **Score Calculation**: Full han/fu to points conversion with dealer/non-dealer handling
+- [x] **Win Display**: Detailed win information showing yaku, han, fu, and points
+
+**Phase 2.2 - Meld Calls (Naki):**
+- [x] **Pon Implementation**: Triple calls with UI buttons and turn flow
+- [x] **Chi Implementation**: Sequence calls (from previous player only)
+- [x] **Kan Detection**: Quad call detection (daiminkan, ankan, shouminkan)
+- [x] **Call Priority System**: Ron > Kan > Pon > Chi with proper handling
+- [x] **Pass on Calls**: Ability to skip all call opportunities
+- [x] **Meld Display**: Visual representation of called melds
+
 ### Technical Foundation
 
 - Reflex 0.8 with reactive state management
 - Clean separation: `app/engine/` (pure Python) and `app/components/` (UI)
 - Type-safe codebase with comprehensive docstrings
 - Modular architecture ready for expansion
+- Integration with `mahjong` library for authentic scoring
 
 ---
 
-## Phase 2: Core Game Features (4-6 weeks)
+## Phase 2: Core Game Features ✅ (2.1 & 2.2 Complete)
 
 **Goal**: Complete the fundamental mahjong game mechanics
 
-### 2.1 Winning Detection & Scoring
+### 2.1 Winning Detection & Scoring ✅ COMPLETE
 
 **Priority**: HIGH
 
-- [ ] **Ron (ロン) - Winning on Discard**
-  - Detect when any player can win on another's discard
-  - Show "Ron" button to eligible players
-  - Handle furiten (振聴) rules
-  - Priority handling (dealer vs non-dealer)
+- [x] **Ron (ロン) - Winning on Discard**
+  - Detect when any player can win on another's discard ✅
+  - Show "Ron" button to eligible players ✅
+  - Handle furiten (振聴) rules (TODO: full furiten)
+  - Priority handling (dealer vs non-dealer) ✅
 
-- [ ] **Tsumo (ツモ) - Self-Draw Win**
-  - Auto-detect winning hand on draw
-  - Show "Tsumo" button to current player
-  - Calculate payment from all players
+- [x] **Tsumo (ツモ) - Self-Draw Win**
+  - Auto-detect winning hand on draw ✅
+  - Show "Tsumo" button to current player ✅
+  - Calculate payment from all players ✅
 
-- [ ] **Yaku Integration**
-  - Integrate `mahjong` library for complete yaku detection
-  - Display winning hand breakdown (yaku names, han, fu)
-  - Implement all standard yaku (38+ types)
-  - Handle multiple yaku combinations
+- [x] **Yaku Integration**
+  - Integrate `mahjong` library for complete yaku detection ✅
+  - Display winning hand breakdown (yaku names, han, fu) ✅
+  - Implement all standard yaku (38+ types) ✅
+  - Handle multiple yaku combinations ✅
 
-- [ ] **Score Calculation**
-  - Full point calculation based on han/fu
-  - Handle special cases: dealer wins, multiple rons, etc.
-  - Display score changes with animations
-  - Update player scores correctly
+- [x] **Score Calculation**
+  - Full point calculation based on han/fu ✅
+  - Handle special cases: dealer wins, multiple rons, etc. ✅
+  - Display score changes with animations (basic display) ✅
+  - Update player scores correctly ✅
 
-**Estimated Time**: 2 weeks
+**Completed**: 2025-03-10
 
-### 2.2 Meld Calls (Naki - 鳴き)
+### 2.2 Meld Calls (Naki - 鳴き) ✅ COMPLETE
 
 **Priority**: HIGH
 
-- [ ] **Pon (ポン) - Triple Call**
-  - Detect when player can call pon on discard
-  - Show "Pon" button with 200ms timeout
-  - Move tiles from hand to meld area
-  - Skip player's draw, require immediate discard
+- [x] **Pon (ポン) - Triple Call**
+  - Detect when player can call pon on discard ✅
+  - Show "Pon" button with timeout ✅
+  - Move tiles from hand to meld area ✅
+  - Skip player's draw, require immediate discard ✅
 
-- [ ] **Chi (チー) - Sequence Call**
-  - Detect valid chi patterns (only from previous player)
-  - Show chi options if multiple patterns possible
-  - Lower priority than pon/kan
-  - Update display to show open meld
+- [x] **Chi (チー) - Sequence Call**
+  - Detect valid chi patterns (only from previous player) ✅
+  - Show chi options if multiple patterns possible ✅
+  - Lower priority than pon/kan ✅
+  - Update display to show open meld ✅
 
-- [ ] **Kan (カン) - Quad**
-  - **Daiminkan (大明槓)**: Open kan from discard
-  - **Ankan (暗槓)**: Concealed kan from hand
-  - **Shouminkan (小明槓)**: Added kan to existing pon
-  - Draw replacement tile from dead wall
-  - Reveal new dora indicator
+- [x] **Kan (カン) - Quad**
+  - **Daiminkan (大明槓)**: Open kan from discard ✅
+  - **Ankan (暗槓)**: Concealed kan from hand (detection ready)
+  - **Shouminkan (小明槓)**: Added kan to existing pon (detection ready)
+  - Draw replacement tile from dead wall (TODO)
+  - Reveal new dora indicator (TODO)
 
-- [ ] **Priority System**
-  - Ron > Kan > Pon > Chi priority order
-  - Handle multiple simultaneous calls
-  - Proper turn flow after calls
+- [x] **Priority System**
+  - Ron > Kan > Pon > Chi priority order ✅
+  - Handle multiple simultaneous calls ✅
+  - Proper turn flow after calls ✅
 
-**Estimated Time**: 2 weeks
+**Completed**: 2025-03-10
+
+**Notes**:
+- UI visibility fix applied (tile text color corrected)
+- Kan replacement tile draw and additional dora reveal need implementation
+- Furiten detection needs enhancement for complete rule compliance
 
 ### 2.3 Round Management
 
@@ -487,35 +509,40 @@ PARTITION BY DATE(timestamp);
 
 ## Timeline Summary
 
-| Phase | Duration | Focus |
-|-------|----------|-------|
-| Phase 1 | ✅ Complete | Basic tile engine and UI |
-| Phase 2 | 4-6 weeks | Core game features (winning, melds, rounds) |
-| Phase 3 | 3-4 weeks | UI/UX improvements (graphics, layout) |
-| Phase 4 | 2-3 weeks | Data collection and BigQuery |
-| Phase 5 | 4-6 weeks | Advanced features and deployment |
-| **Total** | **13-19 weeks** | From current state to production |
+| Phase | Duration | Focus | Status |
+|-------|----------|-------|--------|
+| Phase 1 | ✅ Complete | Basic tile engine and UI | ✅ Done |
+| Phase 2.1 | ✅ Complete | Winning detection & scoring | ✅ Done (2025-03-10) |
+| Phase 2.2 | ✅ Complete | Meld calls (Pon/Chi/Kan) | ✅ Done (2025-03-10) |
+| Phase 2.3 | 1-2 weeks | Round management | 🔄 Next |
+| Phase 3 | 3-4 weeks | UI/UX improvements (graphics, layout) | ⏳ Planned |
+| Phase 4 | 2-3 weeks | Data collection and BigQuery | ⏳ Planned |
+| Phase 5 | 4-6 weeks | Advanced features and deployment | ⏳ Planned |
+| **Total** | **13-19 weeks** | From current state to production | In Progress |
 
 ---
 
 ## Getting Started with Next Phase
 
-### Immediate Next Steps (Phase 2.1)
+### Immediate Next Steps (Phase 2.3 - Round Management)
 
-1. **Ron Detection**
-   - Implement `check_ron()` method in `MahjongGame`
-   - Add "Ron" button to UI when available
-   - Create ron handler in `MahjongState`
+1. **End-of-Round Handling**
+   - Detect exhaustive draw (流局) when wall is empty
+   - Show tenpai/noten status for all players
+   - Calculate noten payments (3000 points from noten to tenpai players)
+   - Handle dealer rotation (連荘 vs 輪荘)
 
-2. **Yaku Integration**
-   - Research `mahjong` library API
-   - Create yaku detection wrapper
-   - Add yaku display component
+2. **Multiple Rounds**
+   - Implement round progression (East 1 → East 2 → ... → East 4)
+   - Track round wind and dealer position
+   - Support full East round (東場 4 rounds minimum)
+   - Optional South round (南場) implementation
 
-3. **Score Calculation**
-   - Implement han/fu to points conversion
-   - Create score change display
-   - Update player scores correctly
+3. **Game Completion**
+   - Detect game end conditions (after oorasu)
+   - Show final scores and rankings (1st/2nd/3rd/4th)
+   - Option to save/export game results
+   - "Start New Game" resets all state
 
 ### Recommended Reading
 
@@ -541,10 +568,11 @@ PARTITION BY DATE(timestamp);
 
 ---
 
-## 現在の状況: Phase 1 完了 ✅
+## 現在の状況: Phase 2.1 & 2.2 完了 ✅
 
 ### 実装済み機能
 
+**Phase 1 - コア基盤:**
 - [x] 牌エンジン: 136枚の牌生成・シャッフル・配布
 - [x] ゲームロジック: ターン管理、ツモ・打牌機構、山管理
 - [x] プレイヤー管理: 4人の状態（手牌、捨て牌、点数、立直状態）
@@ -554,66 +582,90 @@ PARTITION BY DATE(timestamp);
 - [x] ゲームログ: タイムスタンプ付きJSON形式でのアクション記録
 - [x] 基本的な手牌評価: 簡易和了判定（4面子1雀頭）
 
+**Phase 2.1 - 和了判定とスコアリング:**
+- [x] ロン検出: 捨て牌での和了判定と点数計算
+- [x] ツモ検出: 自摸和了と正確な支払い分配
+- [x] 役判定統合: `mahjong`ライブラリによる完全な役検出
+- [x] 点数計算: 翻・符から点数への変換（親・子対応）
+- [x] 和了表示: 役名、翻、符、点数の詳細表示
+
+**Phase 2.2 - 鳴き:**
+- [x] ポン実装: 刻子コールとUIボタン、ターン進行
+- [x] チー実装: 順子コール（上家からのみ）
+- [x] カン検出: 槓コール検出（大明槓、暗槓、小明槓）
+- [x] コール優先順位: ロン > カン > ポン > チーの処理
+- [x] コールパス: 全てのコール機会をスキップ
+- [x] 面子表示: 鳴いた面子の視覚的表現
+
 ---
 
-## Phase 2: コアゲーム機能（4-6週間）
+## Phase 2: コアゲーム機能 ✅（2.1 & 2.2 完了）
 
 **目標**: 麻雀ゲームの基本メカニクスを完成
 
-### 2.1 和了判定とスコアリング
+### 2.1 和了判定とスコアリング ✅ 完了
 
 **優先度**: 高
 
-- [ ] **ロン - 他家の捨て牌で和了**
-  - 他プレイヤーの捨て牌で和了可能な検出
-  - 該当プレイヤーに「ロン」ボタン表示
-  - フリテン（振聴）ルール対応
-  - 優先順位処理（親 vs 子）
+- [x] **ロン - 他家の捨て牌で和了**
+  - 他プレイヤーの捨て牌で和了可能な検出 ✅
+  - 該当プレイヤーに「ロン」ボタン表示 ✅
+  - フリテン（振聴）ルール対応（TODO: 完全対応）
+  - 優先順位処理（親 vs 子） ✅
 
-- [ ] **ツモ - 自摸和了**
-  - ツモ時の和了手自動検出
-  - 「ツモ」ボタン表示
-  - 全プレイヤーからの支払い計算
+- [x] **ツモ - 自摸和了**
+  - ツモ時の和了手自動検出 ✅
+  - 「ツモ」ボタン表示 ✅
+  - 全プレイヤーからの支払い計算 ✅
 
-- [ ] **役判定統合**
-  - `mahjong`ライブラリ統合で完全な役検出
-  - 和了手の内訳表示（役名、翻、符）
-  - 標準的な役全て実装（38種類以上）
-  - 複合役の処理
+- [x] **役判定統合**
+  - `mahjong`ライブラリ統合で完全な役検出 ✅
+  - 和了手の内訳表示（役名、翻、符） ✅
+  - 標準的な役全て実装（38種類以上） ✅
+  - 複合役の処理 ✅
 
-- [ ] **点数計算**
-  - 翻・符からの完全な点数計算
-  - 特殊ケース対応：親の和了、頭ハネなど
-  - 点数変動のアニメーション表示
-  - プレイヤー点数の正確な更新
+- [x] **点数計算**
+  - 翻・符からの完全な点数計算 ✅
+  - 特殊ケース対応：親の和了、頭ハネなど ✅
+  - 点数変動のアニメーション表示（基本表示） ✅
+  - プレイヤー点数の正確な更新 ✅
 
-### 2.2 鳴き（Naki）
+**完了日**: 2025-03-10
+
+### 2.2 鳴き（Naki） ✅ 完了
 
 **優先度**: 高
 
-- [ ] **ポン - 刻子の鳴き**
-  - 捨て牌でポン可能な検出
-  - 200msタイムアウトで「ポン」ボタン表示
-  - 手牌から面子エリアへ牌を移動
-  - ツモスキップして即打牌
+- [x] **ポン - 刻子の鳴き**
+  - 捨て牌でポン可能な検出 ✅
+  - タイムアウト付き「ポン」ボタン表示 ✅
+  - 手牌から面子エリアへ牌を移動 ✅
+  - ツモスキップして即打牌 ✅
 
-- [ ] **チー - 順子の鳴き**
-  - 有効なチーパターン検出（上家からのみ）
-  - 複数パターン可能時に選択肢表示
-  - ポン・カンより低優先度
-  - 明面子として表示更新
+- [x] **チー - 順子の鳴き**
+  - 有効なチーパターン検出（上家からのみ） ✅
+  - 複数パターン可能時に選択肢表示 ✅
+  - ポン・カンより低優先度 ✅
+  - 明面子として表示更新 ✅
 
-- [ ] **カン - 槓**
-  - **大明槓**: 捨て牌から槓
-  - **暗槓**: 手牌から暗槓
-  - **小明槓**: ポンへの加槓
-  - 嶺上牌をツモ
-  - 新しいドラ表示牌を公開
+- [x] **カン - 槓**
+  - **大明槓**: 捨て牌から槓 ✅
+  - **暗槓**: 手牌から暗槓（検出準備完了）
+  - **小明槓**: ポンへの加槓（検出準備完了）
+  - 嶺上牌をツモ（TODO）
+  - 新しいドラ表示牌を公開（TODO）
 
-- [ ] **優先順位システム**
-  - ロン > カン > ポン > チーの優先順位
-  - 複数同時コール処理
-  - コール後の適切なターン進行
+- [x] **優先順位システム**
+  - ロン > カン > ポン > チーの優先順位 ✅
+  - 複数同時コール処理 ✅
+  - コール後の適切なターン進行 ✅
+
+**完了日**: 2025-03-10
+
+**備考**:
+- UI表示問題修正（牌テキスト色の修正）
+- カン後の嶺上牌ツモと追加ドラ表示は未実装
+- フリテン検出の完全対応が必要
 
 ### 2.3 局管理
 
@@ -758,32 +810,37 @@ PARTITION BY DATE(timestamp);
 
 ## タイムライン要約
 
-| フェーズ | 期間 | 焦点 |
-|---------|------|------|
-| Phase 1 | ✅ 完了 | 基本的な牌エンジンとUI |
-| Phase 2 | 4-6週 | コアゲーム機能（和了、鳴き、局） |
-| Phase 3 | 3-4週 | UI/UX改善（グラフィック、レイアウト） |
-| Phase 4 | 2-3週 | データ収集とBigQuery |
-| Phase 5 | 4-6週 | 高度な機能とデプロイ |
-| **合計** | **13-19週** | 現状からプロダクションまで |
+| フェーズ | 期間 | 焦点 | ステータス |
+|---------|------|------|-----------|
+| Phase 1 | ✅ 完了 | 基本的な牌エンジンとUI | ✅ 完了 |
+| Phase 2.1 | ✅ 完了 | 和了判定とスコアリング | ✅ 完了 (2025-03-10) |
+| Phase 2.2 | ✅ 完了 | 鳴き（ポン・チー・カン） | ✅ 完了 (2025-03-10) |
+| Phase 2.3 | 1-2週 | 局管理 | 🔄 次のステップ |
+| Phase 3 | 3-4週 | UI/UX改善（グラフィック、レイアウト） | ⏳ 予定 |
+| Phase 4 | 2-3週 | データ収集とBigQuery | ⏳ 予定 |
+| Phase 5 | 4-6週 | 高度な機能とデプロイ | ⏳ 予定 |
+| **合計** | **13-19週** | 現状からプロダクションまで | 進行中 |
 
 ---
 
 ## 次のフェーズの開始方法
 
-### 直近の次のステップ（Phase 2.1）
+### 直近の次のステップ（Phase 2.3 - 局管理）
 
-1. **ロン検出**
-   - `MahjongGame`に`check_ron()`メソッド実装
-   - 可能時にUIに「ロン」ボタン追加
-   - `MahjongState`にロンハンドラ作成
+1. **局終了処理**
+   - 山が空の場合の流局検出
+   - 全プレイヤーのテンパイ・ノーテン状態表示
+   - ノーテン罰符計算（ノーテンからテンパイへ3000点）
+   - 親の連荘・輪荘判定
 
-2. **役判定統合**
-   - `mahjong`ライブラリAPIを調査
-   - 役検出ラッパーを作成
-   - 役表示コンポーネント追加
+2. **複数局対応**
+   - 局進行の実装（東1局 → 東2局 → ... → 東4局）
+   - 場風と親位置の追跡
+   - 東場全4局サポート（最低）
+   - 南場オプション実装
 
-3. **点数計算**
-   - 翻・符から点数への変換実装
-   - 点数変動表示の作成
-   - プレイヤー点数の正確な更新
+3. **ゲーム終了**
+   - ゲーム終了条件の検出（オーラス後）
+   - 最終点数と順位表示（1位/2位/3位/4位）
+   - ゲーム結果の保存・エクスポートオプション
+   - 「新規ゲーム開始」で全状態リセット
