@@ -27,16 +27,25 @@ class GameAction:
 class MahjongGame:
     """Main game class managing the mahjong game state and flow."""
 
-    def __init__(self):
-        """Initialize a new game."""
+    def __init__(self, game_type: str = "hanchan"):
+        """
+        Initialize a new game.
+
+        Args:
+            game_type: "hanchan" (半荘, default) or "tonpuu" (東風戦)
+        """
         self.players: List[Player] = [Player(position=i) for i in range(4)]
         self.wall: List[Tile] = []
         self.dead_wall: List[Tile] = []  # Last 14 tiles (for dora and replacement)
         self.dora_indicators: List[Tile] = []
         self.current_player: int = 0
         self.turn_count: int = 0
-        self.round_wind: int = 0  # 0=East, 1=South, 2=West, 3=North
+        self.round_wind: int = 0  # 0=East, 1=South (for hanchan), 2=West, 3=North
+        self.round_number: int = 0  # 0-3 for rounds within a wind
         self.dealer: int = 0
+        self.honba_sticks: int = 0  # 本場（連荘カウント）
+        self.riichi_sticks: int = 0  # 立直棒の数
+        self.game_type: str = game_type  # "hanchan" or "tonpuu"
         self.game_log: List[GameAction] = []
         self.is_game_over: bool = False
         self.winner: Optional[int] = None
@@ -152,6 +161,11 @@ class MahjongGame:
         """Advance to the next player's turn."""
         self.current_player = (self.current_player + 1) % 4
         self.turn_count += 1
+
+        # Check for exhaustive draw before drawing
+        if len(self.wall) == 0:
+            self.handle_exhaustive_draw()
+            return
 
         # Draw tile for next player
         if self.wall:
@@ -279,9 +293,8 @@ class MahjongGame:
         self.players[loser_idx].score -= points
         player.score += points
 
-        # Mark game as won
+        # Mark round as won
         self.winner = player_idx
-        self.is_game_over = True
 
         self.log_action(
             player=player_idx,
@@ -294,6 +307,9 @@ class MahjongGame:
                 "score_info": score_info,
             },
         )
+
+        # Handle round end after win
+        self.handle_round_end_after_win(player_idx)
 
         return True
 
@@ -399,9 +415,8 @@ class MahjongGame:
                     self.players[i].score -= points_per_player
                     player.score += points_per_player
 
-        # Mark game as won
+        # Mark round as won
         self.winner = player_idx
-        self.is_game_over = True
 
         self.log_action(
             player=player_idx,
@@ -413,6 +428,9 @@ class MahjongGame:
                 "score_info": score_info,
             },
         )
+
+        # Handle round end after win
+        self.handle_round_end_after_win(player_idx)
 
         return True
 
@@ -813,6 +831,102 @@ class MahjongGame:
 
         return True
 
+    def handle_round_end_after_win(self, winner_idx: int) -> None:
+        """
+        Handle round end after a win (ron or tsumo).
+
+        Args:
+            winner_idx: Index of the winning player
+        """
+        # Check if winner is dealer
+        if winner_idx == self.dealer:
+            # 連荘 (renchan): dealer continues, honba increases
+            self.honba_sticks += 1
+        else:
+            # 輪荘 (rinshou): dealer rotates
+            self.honba_sticks = 0
+            self.advance_round()
+
+        # Start next round if game is not over
+        if not self.is_game_over:
+            self.start_new_round()
+
+    def handle_exhaustive_draw(self) -> None:
+        """
+        Handle exhaustive draw (流局) when wall is empty.
+        Check tenpai status, distribute noten payments, and start next round.
+        """
+        # Check tenpai status for each player
+        tenpai_players = []
+        for i, player in enumerate(self.players):
+            waiting_tiles = HandEvaluator.check_tenpai(player.hand)
+            if waiting_tiles:
+                tenpai_players.append(i)
+
+        num_tenpai = len(tenpai_players)
+        num_noten = 4 - num_tenpai
+
+        # Distribute noten payments (3000 points total)
+        if 0 < num_tenpai < 4:
+            payment_per_noten = 3000 // num_noten
+            payment_per_tenpai = 3000 // num_tenpai
+
+            for i in range(4):
+                if i in tenpai_players:
+                    self.players[i].score += payment_per_tenpai
+                else:
+                    self.players[i].score -= payment_per_noten
+
+        # Log the draw
+        self.log_action(
+            player=-1,
+            action_type="exhaustive_draw",
+            metadata={
+                "tenpai_players": tenpai_players,
+                "num_tenpai": num_tenpai,
+                "dealer_tenpai": self.dealer in tenpai_players,
+            },
+        )
+
+        # Dealer rotation logic
+        dealer_tenpai = self.dealer in tenpai_players
+        if dealer_tenpai:
+            # 連荘 (renchan): dealer continues, honba increases
+            self.honba_sticks += 1
+        else:
+            # 輪荘 (rinshou): dealer rotates
+            self.honba_sticks = 0
+            self.advance_round()
+
+        # Start next round
+        if not self.is_game_over:
+            self.start_new_round()
+
+    def advance_round(self) -> None:
+        """
+        Advance to the next round.
+        Handles round progression: East 1 -> East 2 -> ... -> South 1 -> ...
+        """
+        self.round_number += 1
+
+        if self.round_number >= 4:
+            # Move to next wind
+            self.round_number = 0
+            self.round_wind += 1
+
+            # Check if game should end
+            if self.game_type == "tonpuu" and self.round_wind >= 1:
+                # 東風戦: game ends after East round
+                self.is_game_over = True
+                return
+            elif self.game_type == "hanchan" and self.round_wind >= 2:
+                # 半荘: game ends after South round
+                self.is_game_over = True
+                return
+
+        # Rotate dealer
+        self.dealer = (self.dealer + 1) % 4
+
     def log_action(
         self,
         player: int,
@@ -853,6 +967,10 @@ class MahjongGame:
             "turn_count": self.turn_count,
             "dealer": self.dealer,
             "round_wind": self.round_wind,
+            "round_number": self.round_number,
+            "honba_sticks": self.honba_sticks,
+            "riichi_sticks": self.riichi_sticks,
+            "game_type": self.game_type,
             "wall_remaining": len(self.wall),
             "is_game_over": self.is_game_over,
             "winner": self.winner,

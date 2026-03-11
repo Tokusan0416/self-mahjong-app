@@ -46,6 +46,8 @@ def index() -> rx.Component:
                 MahjongState.wall_remaining,
                 MahjongState.turn_count,
                 MahjongState.dora_indicators,
+                MahjongState.round_name,
+                MahjongState.game_type_label,
             ),
             rx.divider(),
             # Pass on calls button (shown when any call is available)

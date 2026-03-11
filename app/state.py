@@ -20,6 +20,14 @@ class MahjongState(rx.State):
     is_game_over: bool = False
     winner: int = -1
 
+    # Round info
+    round_wind: int = 0  # 0=East, 1=South
+    round_number: int = 0  # 0-3 within each wind
+    honba_sticks: int = 0  # 本場
+    riichi_sticks: int = 0  # 立直棒
+    game_type: str = "hanchan"  # "hanchan" or "tonpuu"
+    dealer: int = 0  # Dealer position
+
     # Player data (4 players)
     player_hands: List[List[str]] = [[], [], [], []]
     player_discards: List[List[str]] = [[], [], [], []]
@@ -45,12 +53,18 @@ class MahjongState(rx.State):
     # Win information (for display)
     last_win_info: Dict[str, Any] = {}
 
-    def start_new_game(self):
-        """Start a new game."""
-        self._game = MahjongGame()
+    def start_new_game(self, game_type: str = "hanchan"):
+        """
+        Start a new game.
+
+        Args:
+            game_type: "hanchan" (半荘, default) or "tonpuu" (東風戦)
+        """
+        self._game = MahjongGame(game_type=game_type)
         self._game.start_new_round()
         self._sync_state()
-        self.info_message = "New game started! East player's turn."
+        game_type_label = "半荘" if game_type == "hanchan" else "東風戦"
+        self.info_message = f"New game started ({game_type_label})! East 1 局, East player's turn."
         self.waiting_tiles = []
         self.can_ron = [False, False, False, False]
         # Check if dealer can immediately tsumo (rare but possible)
@@ -412,6 +426,14 @@ class MahjongState(rx.State):
         self.is_game_over = game_state["is_game_over"]
         self.winner = game_state["winner"] if game_state["winner"] is not None else -1
 
+        # Sync round info
+        self.round_wind = game_state["round_wind"]
+        self.round_number = game_state["round_number"]
+        self.honba_sticks = game_state["honba_sticks"]
+        self.riichi_sticks = game_state["riichi_sticks"]
+        self.game_type = game_state["game_type"]
+        self.dealer = game_state["dealer"]
+
         # Sync player data
         for i, player_data in enumerate(game_state["players"]):
             last_drawn = player_data.get("last_drawn_tile", "")
@@ -454,3 +476,17 @@ class MahjongState(rx.State):
         """Get the current player's name."""
         names = ["East", "South", "West", "North"]
         return names[self.current_player]
+
+    @rx.var
+    def round_name(self) -> str:
+        """Get the current round name (e.g., '東1局', '南3局')."""
+        wind_names = ["東", "南", "西", "北"]
+        wind = wind_names[self.round_wind]
+        number = self.round_number + 1
+        honba = f" {self.honba_sticks}本場" if self.honba_sticks > 0 else ""
+        return f"{wind}{number}局{honba}"
+
+    @rx.var
+    def game_type_label(self) -> str:
+        """Get the game type label."""
+        return "半荘" if self.game_type == "hanchan" else "東風戦"

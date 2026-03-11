@@ -53,6 +53,8 @@ def render_board(
     wall_remaining: int,
     turn_count: int,
     dora_indicators: List[str],
+    round_name: str,
+    game_type_label: str,
 ) -> rx.Component:
     """
     Render the game board with status information.
@@ -63,6 +65,8 @@ def render_board(
         wall_remaining: Number of tiles left in wall
         turn_count: Current turn number
         dora_indicators: List of dora indicator tiles
+        round_name: Current round (e.g., "東1局")
+        game_type_label: Game type ("半荘" or "東風戦")
 
     Returns:
         Reflex component for the board
@@ -70,6 +74,12 @@ def render_board(
     return rx.box(
         rx.vstack(
             rx.heading("Game Board", size="6", color="#2d3748"),
+            rx.text(
+                f"{game_type_label} - {round_name}",
+                font_size="lg",
+                font_weight="bold",
+                color="#4a5568",
+            ),
             rx.divider(),
             rx.hstack(
                 rx.box(
@@ -128,9 +138,15 @@ def render_game_controls() -> rx.Component:
     return rx.vstack(
         rx.hstack(
             rx.button(
-                "New Game",
-                on_click=MahjongState.start_new_game,
+                "New Game (半荘)",
+                on_click=lambda: MahjongState.start_new_game("hanchan"),
                 color_scheme="blue",
+                size="3",
+            ),
+            rx.button(
+                "New Game (東風戦)",
+                on_click=lambda: MahjongState.start_new_game("tonpuu"),
+                color_scheme="cyan",
                 size="3",
             ),
             rx.button(

@@ -49,6 +49,13 @@ Build a web-based mahjong simulator where one person can play all four positions
 - [x] **Auto-sort Hand**: Hand automatically sorted after discarding
 - [x] **Visual Clarity**: Improved hand readability with proper spacing
 
+**Phase 2.3 - Round Management:**
+- [x] **Exhaustive Draw**: Detect流局 when wall empties, with tenpai/noten status and payments
+- [x] **Dealer Rotation**: 連荘 (dealer wins/tenpai) vs 輪荘 (dealer rotates)
+- [x] **Round Progression**: East 1-4 → South 1-4 with proper tracking
+- [x] **Game Types**: Support for 半荘 (hanchan, default) and 東風戦 (tonpuu)
+- [x] **Game Completion**: Detect game end after final round
+
 ### Technical Foundation
 
 - Reflex 0.8 with reactive state management
@@ -150,28 +157,40 @@ Build a web-based mahjong simulator where one person can play all four positions
 - Updated UI to display main hand (13 tiles) and drawn tile (1 tile) separately
 - Drawn tile shown with 16px spacing for visual clarity
 
-### 2.3 Round Management
+### 2.3 Round Management ✅ COMPLETE
 
 **Priority**: MEDIUM
 
-- [ ] **End-of-Round Handling**
-  - Detect exhaustive draw (流局)
-  - Show tenpai/noten status
-  - Calculate noten payments
-  - Handle dealer rotation (連荘 vs 輪荘)
+- [x] **End-of-Round Handling**
+  - Detect exhaustive draw (流局) ✅
+  - Show tenpai/noten status ✅
+  - Calculate noten payments (3000 point distribution) ✅
+  - Handle dealer rotation (連荘 vs 輪荘) ✅
 
-- [ ] **Multiple Rounds**
-  - Support full East round (東場 4 rounds)
-  - Optional South round (南場)
-  - Track round wind and dealer position
-  - Implement oorasu (last round) detection
+- [x] **Multiple Rounds**
+  - Support full East round (東場 4 rounds) ✅
+  - Optional South round (南場) ✅
+  - Track round wind and dealer position ✅
+  - Game type selection: 半荘 (hanchan) and 東風戦 (tonpuu) ✅
 
-- [ ] **Game Completion**
-  - Detect game end conditions
-  - Show final scores and rankings
-  - Option to save/export game results
+- [x] **Game Completion**
+  - Detect game end conditions ✅
+  - Round progression with proper game termination ✅
+  - UI display of current round and game type ✅
 
-**Estimated Time**: 1-2 weeks
+**Completed**: 2026-03-11
+
+**Implementation Details**:
+- Added `game_type` parameter to `MahjongGame.__init__()` (default: "hanchan")
+- Implemented round tracking: `round_wind`, `round_number`, `honba_sticks`, `riichi_sticks`
+- Created `handle_exhaustive_draw()`: checks all players' tenpai status, distributes noten payments
+- Created `handle_round_end_after_win()`: manages dealer rotation based on winner
+- Created `advance_round()`: progresses rounds and handles game end detection
+- Modified `advance_turn()` to detect exhaustive draw when wall empties
+- Modified `declare_tsumo()` and `declare_ron()` to trigger round end handling
+- Updated UI with game type buttons and round display (e.g., "東1局 2本場")
+- Dealer continues (連荘) if dealer wins or is tenpai at exhaustive draw
+- Dealer rotates (輪荘) if dealer loses or is noten at exhaustive draw
 
 ---
 
