@@ -44,6 +44,11 @@ Build a web-based mahjong simulator where one person can play all four positions
 - [x] **Pass on Calls**: Ability to skip all call opportunities
 - [x] **Meld Display**: Visual representation of called melds
 
+**Phase 2.2.5 - Hand Organization (Partial from Phase 3):**
+- [x] **Drawn Tile Separation**: Last drawn tile displayed separately on the right
+- [x] **Auto-sort Hand**: Hand automatically sorted after discarding
+- [x] **Visual Clarity**: Improved hand readability with proper spacing
+
 ### Technical Foundation
 
 - Reflex 0.8 with reactive state management
@@ -121,6 +126,29 @@ Build a web-based mahjong simulator where one person can play all four positions
 - UI visibility fix applied (tile text color corrected)
 - Kan replacement tile draw and additional dora reveal need implementation
 - Furiten detection needs enhancement for complete rule compliance
+
+### 2.2.5 Hand Organization (Early UI Improvements) ✅ COMPLETE
+
+**Priority**: HIGH (pulled forward from Phase 3)
+
+- [x] **Drawn Tile Separation**
+  - Last drawn tile displayed separately on the right ✅
+  - Visual spacing between main hand and drawn tile ✅
+  - Improves hand readability significantly ✅
+
+- [x] **Auto-sort Hand**
+  - Hand automatically sorted after discarding ✅
+  - Maintains traditional mahjong tile organization ✅
+  - Helps players quickly identify patterns ✅
+
+**Completed**: 2025-03-11
+
+**Implementation Details**:
+- Added `last_drawn_tile` attribute to Player class
+- Modified `draw_tile()` to track the drawn tile
+- Modified `discard_tile()` to clear drawn tile and auto-sort hand
+- Updated UI to display main hand (13 tiles) and drawn tile (1 tile) separately
+- Drawn tile shown with 16px spacing for visual clarity
 
 ### 2.3 Round Management
 
@@ -216,12 +244,13 @@ Build a web-based mahjong simulator where one person can play all four positions
   - Turn timer (optional)
 
 - [ ] **Hand Organization**
-  - Auto-sort hand option
+  - ~~Auto-sort hand option~~ ✅ **Completed in Phase 2.2.5**
+  - ~~Drawn tile separation~~ ✅ **Completed in Phase 2.2.5**
   - Manual tile arrangement (drag-and-drop)
   - Visual tenpai hints
   - Tile grouping suggestions
 
-**Estimated Time**: 1 week
+**Estimated Time**: 1 week (reduced to ~3-4 days due to Phase 2.2.5 completion)
 
 ---
 
@@ -514,6 +543,7 @@ PARTITION BY DATE(timestamp);
 | Phase 1 | ✅ Complete | Basic tile engine and UI | ✅ Done |
 | Phase 2.1 | ✅ Complete | Winning detection & scoring | ✅ Done (2025-03-10) |
 | Phase 2.2 | ✅ Complete | Meld calls (Pon/Chi/Kan) | ✅ Done (2025-03-10) |
+| Phase 2.2.5 | ✅ Complete | Hand organization (drawn tile separation, auto-sort) | ✅ Done (2025-03-11) |
 | Phase 2.3 | 1-2 weeks | Round management | 🔄 Next |
 | Phase 3 | 3-4 weeks | UI/UX improvements (graphics, layout) | ⏳ Planned |
 | Phase 4 | 2-3 weeks | Data collection and BigQuery | ⏳ Planned |
@@ -597,6 +627,11 @@ PARTITION BY DATE(timestamp);
 - [x] コールパス: 全てのコール機会をスキップ
 - [x] 面子表示: 鳴いた面子の視覚的表現
 
+**Phase 2.2.5 - 手牌整理（Phase 3から前倒し）:**
+- [x] ツモ牌分離表示: 最後にツモった牌を右側に分離表示
+- [x] 手牌自動ソート: 打牌後に手牌を自動ソート
+- [x] 視覚的明瞭さ: 適切な間隔で手牌の可読性向上
+
 ---
 
 ## Phase 2: コアゲーム機能 ✅（2.1 & 2.2 完了）
@@ -666,6 +701,29 @@ PARTITION BY DATE(timestamp);
 - UI表示問題修正（牌テキスト色の修正）
 - カン後の嶺上牌ツモと追加ドラ表示は未実装
 - フリテン検出の完全対応が必要
+
+### 2.2.5 手牌整理（Phase 3からの前倒し実装） ✅ 完了
+
+**優先度**: 高（Phase 3から前倒し）
+
+- [x] **ツモ牌の分離表示**
+  - ツモ牌を右側に分離して表示 ✅
+  - 手牌とツモ牌の間に視覚的なスペース ✅
+  - 手牌の可読性が大幅に向上 ✅
+
+- [x] **手牌の自動ソート**
+  - 打牌後に手牌を自動ソート ✅
+  - 伝統的な麻雀の牌配置を維持 ✅
+  - パターン識別が容易に ✅
+
+**完了日**: 2025-03-11
+
+**実装詳細**:
+- Playerクラスに`last_drawn_tile`属性を追加
+- `draw_tile()`でツモ牌を記録
+- `discard_tile()`でツモ牌をクリアし手牌を自動ソート
+- UIで手牌（13枚）とツモ牌（1枚）を分離表示
+- 視覚的な明瞭さのため16pxの間隔で表示
 
 ### 2.3 局管理
 
@@ -815,6 +873,7 @@ PARTITION BY DATE(timestamp);
 | Phase 1 | ✅ 完了 | 基本的な牌エンジンとUI | ✅ 完了 |
 | Phase 2.1 | ✅ 完了 | 和了判定とスコアリング | ✅ 完了 (2025-03-10) |
 | Phase 2.2 | ✅ 完了 | 鳴き（ポン・チー・カン） | ✅ 完了 (2025-03-10) |
+| Phase 2.2.5 | ✅ 完了 | 手牌整理（ツモ牌分離、自動ソート） | ✅ 完了 (2025-03-11) |
 | Phase 2.3 | 1-2週 | 局管理 | 🔄 次のステップ |
 | Phase 3 | 3-4週 | UI/UX改善（グラフィック、レイアウト） | ⏳ 予定 |
 | Phase 4 | 2-3週 | データ収集とBigQuery | ⏳ 予定 |

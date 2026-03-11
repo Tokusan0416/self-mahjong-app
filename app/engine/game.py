@@ -212,7 +212,19 @@ class MahjongGame:
 
         # Check if hand would be complete with the last discard
         test_hand = player.hand + [self.last_discard]
-        return HandEvaluator.is_complete_hand(test_hand)
+
+        num_melds = len(player.melds)
+        if num_melds == 0:
+            # Standard 14-tile hand
+            return HandEvaluator.is_complete_hand(test_hand)
+        elif num_melds == 4:
+            # Only need a pair (2 tiles)
+            if len(test_hand) == 2:
+                return test_hand[0] == test_hand[1]
+            return False
+        else:
+            # Need to check remaining tiles form valid structure
+            return HandEvaluator._check_with_melds(test_hand, 4 - num_melds)
 
     def check_all_ron(self) -> List[int]:
         """
@@ -288,7 +300,7 @@ class MahjongGame:
     def check_tsumo(self, player_idx: int) -> bool:
         """
         Check if the player can declare tsumo (self-draw win).
-        Player must have just drawn a tile (14 tiles in hand).
+        Player must have just drawn a tile.
 
         Args:
             player_idx: Player to check
@@ -298,11 +310,32 @@ class MahjongGame:
         """
         player = self.players[player_idx]
 
-        # Must have 14 tiles (13 + just drawn)
-        if len(player.hand) != 14:
+        # Calculate expected hand size: 14 - (number of melds * 3)
+        expected_hand_size = 14 - (len(player.melds) * 3)
+        if len(player.hand) != expected_hand_size:
             return False
 
-        return HandEvaluator.is_complete_hand(player.hand)
+        # For hands with melds, we need to check if remaining tiles form valid structure
+        # Each meld reduces the requirement by 1 group (3 tiles)
+        # So: 0 melds = need 4 groups + 1 pair (14 tiles)
+        #     1 meld  = need 3 groups + 1 pair (11 tiles)
+        #     2 melds = need 2 groups + 1 pair (8 tiles)
+        #     3 melds = need 1 group + 1 pair (5 tiles)
+        #     4 melds = need 0 groups + 1 pair (2 tiles)
+
+        num_melds = len(player.melds)
+        if num_melds == 0:
+            # Standard 14-tile hand
+            return HandEvaluator.is_complete_hand(player.hand)
+        elif num_melds == 4:
+            # Only need a pair (2 tiles)
+            if len(player.hand) == 2:
+                return player.hand[0] == player.hand[1]
+            return False
+        else:
+            # Need to check remaining tiles form valid structure
+            # For simplicity, we'll use a recursive check
+            return HandEvaluator._check_with_melds(player.hand, 4 - num_melds)
 
     def declare_tsumo(self, player_idx: int) -> bool:
         """
@@ -836,6 +869,7 @@ class MahjongGame:
                     ],
                     "score": p.score,
                     "is_riichi": p.is_riichi,
+                    "last_drawn_tile": str(p.last_drawn_tile) if p.last_drawn_tile else "",
                 }
                 for p in self.players
             ],

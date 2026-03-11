@@ -139,6 +139,37 @@ class HandEvaluator:
         return False
 
     @staticmethod
+    def _check_with_melds(tiles: List[Tile], num_remaining_melds: int) -> bool:
+        """
+        Check if tiles form a valid winning pattern with existing melds.
+
+        Args:
+            tiles: Remaining tiles in hand
+            num_remaining_melds: Number of melds still needed (not including called melds)
+
+        Returns:
+            True if tiles can form required pattern
+        """
+        if len(tiles) != num_remaining_melds * 3 + 2:
+            return False
+
+        # Count tiles
+        tile_counts = Counter(tiles)
+
+        # Try each tile as the pair
+        for pair_tile in tile_counts:
+            if tile_counts[pair_tile] >= 2:
+                # Remove pair
+                remaining = tile_counts.copy()
+                remaining[pair_tile] -= 2
+
+                # Check if remaining tiles form required number of melds
+                if HandEvaluator._check_melds(remaining, num_remaining_melds):
+                    return True
+
+        return False
+
+    @staticmethod
     def _check_melds(tile_counts: Counter, num_melds: int) -> bool:
         """
         Recursively check if tiles can form required number of melds.

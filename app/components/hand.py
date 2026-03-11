@@ -6,13 +6,14 @@ import reflex as rx
 from typing import List
 
 
-def render_tile_clickable(tile_str: str, player_idx: int) -> rx.Component:
+def render_tile_clickable(tile_str: str, player_idx: int, is_drawn_tile: bool = False) -> rx.Component:
     """
     Render a clickable mahjong tile.
 
     Args:
         tile_str: String representation of tile (e.g., "1m", "5p")
         player_idx: Index of the player (0-3)
+        is_drawn_tile: Whether this is the drawn tile (displayed on the right)
 
     Returns:
         Reflex component for the tile
@@ -21,7 +22,7 @@ def render_tile_clickable(tile_str: str, player_idx: int) -> rx.Component:
 
     return rx.button(
         tile_str,
-        on_click=lambda: MahjongState.discard_tile(player_idx, tile_str),
+        on_click=lambda: MahjongState.discard_tile(player_idx, tile_str, is_drawn_tile),
         padding="8px 12px",
         margin="2px",
         border="2px solid #333",
@@ -74,6 +75,7 @@ def render_hand(
     can_pon: bool = False,
     can_chi: bool = False,
     can_kan: bool = False,
+    last_drawn_tile: str = "",
 ) -> rx.Component:
     """
     Render a player's hand.
@@ -88,14 +90,15 @@ def render_hand(
         can_pon: Whether this player can declare pon
         can_chi: Whether this player can declare chi
         can_kan: Whether this player can declare kan
+        last_drawn_tile: The most recently drawn tile (displayed separately on the right)
 
     Returns:
         Reflex component for the hand
     """
     from ..state import MahjongState
 
-    # Use rx.cond to determine if tiles should be clickable
-    tiles_display = rx.cond(
+    # Create display for main hand (without last drawn tile)
+    main_hand_display = rx.cond(
         is_interactive & is_current,
         rx.hstack(
             rx.foreach(
@@ -113,6 +116,25 @@ def render_hand(
             spacing="1",
             wrap="wrap",
         ),
+    )
+
+    # Create display for last drawn tile (shown separately on the right)
+    drawn_tile_display = rx.cond(
+        last_drawn_tile != "",
+        rx.cond(
+            is_interactive & is_current,
+            render_tile_clickable(last_drawn_tile, player_idx, is_drawn_tile=True),
+            render_tile_static(last_drawn_tile),
+        ),
+        rx.box(),  # Empty if no drawn tile
+    )
+
+    # Combine main hand and drawn tile with spacing
+    tiles_display = rx.hstack(
+        main_hand_display,
+        rx.box(width="16px"),  # Spacing between main hand and drawn tile
+        drawn_tile_display,
+        align_items="center",
     )
 
     return rx.box(

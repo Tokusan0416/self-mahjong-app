@@ -26,6 +26,7 @@ class MahjongState(rx.State):
     player_scores: List[int] = [25000, 25000, 25000, 25000]
     player_riichi: List[bool] = [False, False, False, False]
     player_melds: List[List[str]] = [[], [], [], []]  # Melds as strings for each player
+    player_last_drawn: List[str] = ["", "", "", ""]  # Last drawn tile for each player (empty string if none)
 
     # Board info
     dora_indicators: List[str] = []
@@ -55,13 +56,14 @@ class MahjongState(rx.State):
         # Check if dealer can immediately tsumo (rare but possible)
         self.can_tsumo = self._game.check_tsumo(self._game.current_player)
 
-    def discard_tile(self, player_idx: int, tile_str: str):
+    def discard_tile(self, player_idx: int, tile_str: str, is_drawn_tile: bool = False):
         """
         Discard a tile from specified player's hand.
 
         Args:
             player_idx: Index of the player (0-3)
             tile_str: String representation of tile (e.g. "1m")
+            is_drawn_tile: Whether this is the drawn tile (last tile in hand)
         """
         if self.is_game_over:
             self.info_message = "Game is over. Start a new game."
@@ -72,12 +74,23 @@ class MahjongState(rx.State):
             self.info_message = "Not your turn!"
             return
 
-        # Find the index of this tile in the player's hand
-        try:
-            tile_index = self.player_hands[player_idx].index(tile_str)
-        except ValueError:
-            self.info_message = "Tile not in hand!"
-            return
+        # Find the index of this tile in the actual game engine hand
+        game_hand = self._game.players[player_idx].hand
+        game_hand_strs = [str(t) for t in game_hand]
+
+        if is_drawn_tile:
+            # If this is the drawn tile, it's always the last tile in the hand
+            tile_index = len(game_hand) - 1
+            if tile_index < 0 or game_hand_strs[tile_index] != tile_str:
+                self.info_message = "Drawn tile not found in hand!"
+                return
+        else:
+            # For regular tiles, find the first occurrence
+            try:
+                tile_index = game_hand_strs.index(tile_str)
+            except ValueError:
+                self.info_message = "Tile not in hand!"
+                return
 
         tile = self._game.discard_tile(player_idx, tile_index)
 
@@ -401,7 +414,18 @@ class MahjongState(rx.State):
 
         # Sync player data
         for i, player_data in enumerate(game_state["players"]):
-            self.player_hands[i] = player_data["hand"]
+            last_drawn = player_data.get("last_drawn_tile", "")
+            self.player_last_drawn[i] = last_drawn
+
+            # Separate hand into sorted tiles and last drawn tile
+            hand = player_data["hand"]
+            if last_drawn:
+                # The last drawn tile is always the last tile in the hand array
+                # So we just take all tiles except the last one
+                self.player_hands[i] = hand[:-1] if len(hand) > 0 else []
+            else:
+                self.player_hands[i] = hand
+
             self.player_discards[i] = player_data["discards"]
             self.player_scores[i] = player_data["score"]
             self.player_riichi[i] = player_data["is_riichi"]

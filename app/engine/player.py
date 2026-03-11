@@ -25,6 +25,7 @@ class Player:
     score: int = 25000  # Starting score
     is_riichi: bool = False
     riichi_turn: Optional[int] = None
+    last_drawn_tile: Optional[Tile] = None  # Track the most recently drawn tile
 
     def draw_tile(self, tile: Tile) -> None:
         """
@@ -34,6 +35,7 @@ class Player:
             tile: The tile to draw
         """
         self.hand.append(tile)
+        self.last_drawn_tile = tile
 
     def discard_tile(self, tile: Tile) -> bool:
         """
@@ -48,6 +50,9 @@ class Player:
         if tile in self.hand:
             self.hand.remove(tile)
             self.discards.append(tile)
+            self.last_drawn_tile = None
+            # Sort hand after discard
+            self.sort_hand()
             return True
         return False
 
@@ -64,6 +69,9 @@ class Player:
         if 0 <= index < len(self.hand):
             tile = self.hand.pop(index)
             self.discards.append(tile)
+            self.last_drawn_tile = None
+            # Sort hand after discard
+            self.sort_hand()
             return tile
         return None
 
@@ -115,6 +123,7 @@ class Player:
         for tile in meld.tiles:
             if tile in self.hand:
                 self.hand.remove(tile)
+        self.last_drawn_tile = None
 
     @property
     def hand_size(self) -> int:
