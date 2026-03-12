@@ -139,13 +139,13 @@ def render_game_controls() -> rx.Component:
         rx.hstack(
             rx.button(
                 "New Game (半荘)",
-                on_click=lambda: MahjongState.start_new_game("hanchan"),
+                on_click=MahjongState.start_new_game_hanchan,
                 color_scheme="blue",
                 size="3",
             ),
             rx.button(
                 "New Game (東風戦)",
-                on_click=lambda: MahjongState.start_new_game("tonpuu"),
+                on_click=MahjongState.start_new_game_tonpuu,
                 color_scheme="cyan",
                 size="3",
             ),

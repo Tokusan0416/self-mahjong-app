@@ -11,6 +11,9 @@ from .components.board import (
     render_game_controls,
     render_info_panel,
 )
+from .components.exhaustive_draw_display import render_exhaustive_draw_overlay
+from .components.game_end_screen import render_game_end_screen
+from .components.mahjong_table import render_mahjong_table
 
 
 def index() -> rx.Component:
@@ -68,79 +71,20 @@ def index() -> rx.Component:
                 ),
                 rx.box(),
             ),
-            # All 4 players' hands in a grid
-            rx.grid(
-                # East (Position 0) - Bottom
-                rx.box(
-                    render_hand(
-                        MahjongState.player_hands[0],
-                        0,
-                        MahjongState.player_names[0],
-                        is_current=MahjongState.current_player == 0,
-                        is_interactive=True,
-                        can_ron=MahjongState.can_ron[0],
-                        can_pon=MahjongState.can_pon[0],
-                        can_chi=MahjongState.can_chi[0],
-                        can_kan=MahjongState.can_kan[0],
-                        last_drawn_tile=MahjongState.player_last_drawn[0],
-                    ),
-                    render_melds(MahjongState.player_melds[0]),
-                    render_discard_pile(MahjongState.player_discards[0], "East"),
-                ),
-                # South (Position 1) - Right
-                rx.box(
-                    render_hand(
-                        MahjongState.player_hands[1],
-                        1,
-                        MahjongState.player_names[1],
-                        is_current=MahjongState.current_player == 1,
-                        is_interactive=True,
-                        can_ron=MahjongState.can_ron[1],
-                        can_pon=MahjongState.can_pon[1],
-                        can_chi=MahjongState.can_chi[1],
-                        can_kan=MahjongState.can_kan[1],
-                        last_drawn_tile=MahjongState.player_last_drawn[1],
-                    ),
-                    render_melds(MahjongState.player_melds[1]),
-                    render_discard_pile(MahjongState.player_discards[1], "South"),
-                ),
-                # West (Position 2) - Top
-                rx.box(
-                    render_hand(
-                        MahjongState.player_hands[2],
-                        2,
-                        MahjongState.player_names[2],
-                        is_current=MahjongState.current_player == 2,
-                        is_interactive=True,
-                        can_ron=MahjongState.can_ron[2],
-                        can_pon=MahjongState.can_pon[2],
-                        can_chi=MahjongState.can_chi[2],
-                        can_kan=MahjongState.can_kan[2],
-                        last_drawn_tile=MahjongState.player_last_drawn[2],
-                    ),
-                    render_melds(MahjongState.player_melds[2]),
-                    render_discard_pile(MahjongState.player_discards[2], "West"),
-                ),
-                # North (Position 3) - Left
-                rx.box(
-                    render_hand(
-                        MahjongState.player_hands[3],
-                        3,
-                        MahjongState.player_names[3],
-                        is_current=MahjongState.current_player == 3,
-                        is_interactive=True,
-                        can_ron=MahjongState.can_ron[3],
-                        can_pon=MahjongState.can_pon[3],
-                        can_chi=MahjongState.can_chi[3],
-                        can_kan=MahjongState.can_kan[3],
-                        last_drawn_tile=MahjongState.player_last_drawn[3],
-                    ),
-                    render_melds(MahjongState.player_melds[3]),
-                    render_discard_pile(MahjongState.player_discards[3], "North"),
-                ),
-                columns="2",
-                spacing="4",
-                width="100%",
+            # Mahjong table with cross-pattern layout
+            render_mahjong_table(
+                # Player data
+                player_hands=MahjongState.player_hands,
+                player_names=MahjongState.player_names,
+                player_discards=MahjongState.player_discards,
+                player_melds=MahjongState.player_melds,
+                player_last_drawn=MahjongState.player_last_drawn,
+                current_player=MahjongState.current_player,
+                # Call availability
+                can_ron=MahjongState.can_ron,
+                can_pon=MahjongState.can_pon,
+                can_chi=MahjongState.can_chi,
+                can_kan=MahjongState.can_kan,
             ),
             rx.divider(),
             # Footer
@@ -154,6 +98,30 @@ def index() -> rx.Component:
             ),
             spacing="4",
             width="100%",
+        ),
+        # Exhaustive draw overlay (shown when is_exhaustive_draw is true)
+        rx.cond(
+            MahjongState.is_exhaustive_draw,
+            render_exhaustive_draw_overlay(
+                MahjongState.tenpai_players,
+                MahjongState.player_names,
+                MahjongState.player_scores,
+                MahjongState.continue_after_exhaustive_draw,
+            ),
+            rx.box(),
+        ),
+        # Game end screen (shown when game is over)
+        rx.cond(
+            MahjongState.is_game_over,
+            render_game_end_screen(
+                MahjongState.player_names,
+                MahjongState.player_scores,
+                MahjongState.player_rankings,
+                MahjongState.game_type_label,
+                MahjongState.start_new_game_hanchan,
+                MahjongState.start_new_game_tonpuu,
+            ),
+            rx.box(),
         ),
         max_width="1400px",
         padding="20px",

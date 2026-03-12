@@ -53,6 +53,10 @@ class MahjongGame:
         self.last_discard_player: Optional[int] = None  # Who discarded it
         self.pending_calls: List[Dict[str, Any]] = []  # Pending meld/ron calls
 
+        # Exhaustive draw state
+        self.is_exhaustive_draw: bool = False
+        self.tenpai_players: List[int] = []  # Players in tenpai during exhaustive draw
+
     def start_new_round(self) -> None:
         """Start a new round of mahjong."""
         # Create and shuffle tile pool
@@ -854,16 +858,17 @@ class MahjongGame:
     def handle_exhaustive_draw(self) -> None:
         """
         Handle exhaustive draw (流局) when wall is empty.
-        Check tenpai status, distribute noten payments, and start next round.
+        Check tenpai status, distribute noten payments.
+        Does NOT automatically start next round - UI should call continue_after_exhaustive_draw().
         """
         # Check tenpai status for each player
-        tenpai_players = []
+        self.tenpai_players = []
         for i, player in enumerate(self.players):
             waiting_tiles = HandEvaluator.check_tenpai(player.hand)
             if waiting_tiles:
-                tenpai_players.append(i)
+                self.tenpai_players.append(i)
 
-        num_tenpai = len(tenpai_players)
+        num_tenpai = len(self.tenpai_players)
         num_noten = 4 - num_tenpai
 
         # Distribute noten payments (3000 points total)
@@ -872,7 +877,7 @@ class MahjongGame:
             payment_per_tenpai = 3000 // num_tenpai
 
             for i in range(4):
-                if i in tenpai_players:
+                if i in self.tenpai_players:
                     self.players[i].score += payment_per_tenpai
                 else:
                     self.players[i].score -= payment_per_noten
@@ -882,14 +887,22 @@ class MahjongGame:
             player=-1,
             action_type="exhaustive_draw",
             metadata={
-                "tenpai_players": tenpai_players,
+                "tenpai_players": self.tenpai_players,
                 "num_tenpai": num_tenpai,
-                "dealer_tenpai": self.dealer in tenpai_players,
+                "dealer_tenpai": self.dealer in self.tenpai_players,
             },
         )
 
+        # Set exhaustive draw flag (UI will display and then call continue method)
+        self.is_exhaustive_draw = True
+
+    def continue_after_exhaustive_draw(self) -> None:
+        """
+        Continue to next round after exhaustive draw.
+        Should be called by UI after displaying tenpai/noten status.
+        """
         # Dealer rotation logic
-        dealer_tenpai = self.dealer in tenpai_players
+        dealer_tenpai = self.dealer in self.tenpai_players
         if dealer_tenpai:
             # 連荘 (renchan): dealer continues, honba increases
             self.honba_sticks += 1
@@ -897,6 +910,10 @@ class MahjongGame:
             # 輪荘 (rinshou): dealer rotates
             self.honba_sticks = 0
             self.advance_round()
+
+        # Clear exhaustive draw state
+        self.is_exhaustive_draw = False
+        self.tenpai_players = []
 
         # Start next round
         if not self.is_game_over:
@@ -974,6 +991,8 @@ class MahjongGame:
             "wall_remaining": len(self.wall),
             "is_game_over": self.is_game_over,
             "winner": self.winner,
+            "is_exhaustive_draw": self.is_exhaustive_draw,
+            "tenpai_players": self.tenpai_players,
             "players": [
                 {
                     "position": p.position,

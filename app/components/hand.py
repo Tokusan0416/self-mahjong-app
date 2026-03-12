@@ -6,7 +6,7 @@ import reflex as rx
 from typing import List
 
 
-def render_tile_clickable(tile_str: str, player_idx: int, is_drawn_tile: bool = False) -> rx.Component:
+def render_tile_clickable(tile_str: str, player_idx: int, is_drawn_tile: bool = False, size: str = "normal") -> rx.Component:
     """
     Render a clickable mahjong tile.
 
@@ -14,22 +14,31 @@ def render_tile_clickable(tile_str: str, player_idx: int, is_drawn_tile: bool = 
         tile_str: String representation of tile (e.g., "1m", "5p")
         player_idx: Index of the player (0-3)
         is_drawn_tile: Whether this is the drawn tile (displayed on the right)
+        size: Size of the tile ("normal" or "small")
 
     Returns:
         Reflex component for the tile
     """
     from ..state import MahjongState
 
+    # Size configurations
+    if size == "small":
+        padding_val = "4px 8px"
+        font_size_val = "12px"
+    else:  # normal
+        padding_val = "8px 12px"
+        font_size_val = "18px"
+
     return rx.button(
         tile_str,
         on_click=lambda: MahjongState.discard_tile(player_idx, tile_str, is_drawn_tile),
-        padding="8px 12px",
+        padding=padding_val,
         margin="2px",
         border="2px solid #333",
         border_radius="4px",
         background="white",
         color="#1a202c",
-        font_size="18px",
+        font_size=font_size_val,
         font_weight="bold",
         font_family="monospace",
         cursor="pointer",
@@ -41,25 +50,34 @@ def render_tile_clickable(tile_str: str, player_idx: int, is_drawn_tile: bool = 
     )
 
 
-def render_tile_static(tile_str: str) -> rx.Component:
+def render_tile_static(tile_str: str, size: str = "normal") -> rx.Component:
     """
     Render a non-clickable mahjong tile.
 
     Args:
         tile_str: String representation of tile
+        size: Size of the tile ("normal" or "small")
 
     Returns:
         Reflex component for the tile
     """
+    # Size configurations
+    if size == "small":
+        padding_val = "4px 8px"
+        font_size_val = "12px"
+    else:  # normal
+        padding_val = "8px 12px"
+        font_size_val = "18px"
+
     return rx.box(
         tile_str,
-        padding="8px 12px",
+        padding=padding_val,
         margin="2px",
         border="2px solid #333",
         border_radius="4px",
         background="white",
         color="#1a202c",
-        font_size="18px",
+        font_size=font_size_val,
         font_weight="bold",
         font_family="monospace",
     )
@@ -76,6 +94,7 @@ def render_hand(
     can_chi: bool = False,
     can_kan: bool = False,
     last_drawn_tile: str = "",
+    tile_size: str = "normal",
 ) -> rx.Component:
     """
     Render a player's hand.
@@ -91,6 +110,7 @@ def render_hand(
         can_chi: Whether this player can declare chi
         can_kan: Whether this player can declare kan
         last_drawn_tile: The most recently drawn tile (displayed separately on the right)
+        tile_size: Size of tiles ("normal" or "small")
 
     Returns:
         Reflex component for the hand
@@ -103,7 +123,7 @@ def render_hand(
         rx.hstack(
             rx.foreach(
                 tiles,
-                lambda tile: render_tile_clickable(tile, player_idx)
+                lambda tile: render_tile_clickable(tile, player_idx, False, tile_size)
             ),
             spacing="1",
             wrap="wrap",
@@ -111,7 +131,7 @@ def render_hand(
         rx.hstack(
             rx.foreach(
                 tiles,
-                render_tile_static
+                lambda tile: render_tile_static(tile, tile_size)
             ),
             spacing="1",
             wrap="wrap",
@@ -123,8 +143,8 @@ def render_hand(
         last_drawn_tile != "",
         rx.cond(
             is_interactive & is_current,
-            render_tile_clickable(last_drawn_tile, player_idx, is_drawn_tile=True),
-            render_tile_static(last_drawn_tile),
+            render_tile_clickable(last_drawn_tile, player_idx, is_drawn_tile=True, size=tile_size),
+            render_tile_static(last_drawn_tile, tile_size),
         ),
         rx.box(),  # Empty if no drawn tile
     )

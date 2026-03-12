@@ -157,44 +157,68 @@ Build a web-based mahjong simulator where one person can play all four positions
 - Updated UI to display main hand (13 tiles) and drawn tile (1 tile) separately
 - Drawn tile shown with 16px spacing for visual clarity
 
-### 2.3 Round Management ✅ COMPLETE
+### 2.3 Round Management ✅ COMPLETE (Core Features)
 
 **Priority**: MEDIUM
 
 - [x] **End-of-Round Handling**
-  - Detect exhaustive draw (流局) ✅
-  - Show tenpai/noten status ✅
-  - Calculate noten payments (3000 point distribution) ✅
+  - Detect exhaustive draw (流局) when wall empties ✅
+  - Check tenpai/noten status internally ✅
+  - Calculate and distribute noten payments (3000 point total) ✅
   - Handle dealer rotation (連荘 vs 輪荘) ✅
 
 - [x] **Multiple Rounds**
   - Support full East round (東場 4 rounds) ✅
-  - Optional South round (南場) ✅
+  - Support South round (南場 4 rounds) for hanchan ✅
   - Track round wind and dealer position ✅
   - Game type selection: 半荘 (hanchan) and 東風戦 (tonpuu) ✅
 
 - [x] **Game Completion**
-  - Detect game end conditions ✅
+  - Detect game end conditions (after 東4局 for tonpuu, 南4局 for hanchan) ✅
   - Round progression with proper game termination ✅
-  - UI display of current round and game type ✅
+  - UI display of current round and game type (e.g., "半荘 - 東1局 2本場") ✅
+
+- [ ] **UI Enhancements** (Deferred to Phase 3)
+  - Show tenpai/noten status to players after exhaustive draw
+  - Display final scores and rankings when game ends
+  - Option to save/export game results
 
 **Completed**: 2026-03-11
 
 **Implementation Details**:
-- Added `game_type` parameter to `MahjongGame.__init__()` (default: "hanchan")
-- Implemented round tracking: `round_wind`, `round_number`, `honba_sticks`, `riichi_sticks`
-- Created `handle_exhaustive_draw()`: checks all players' tenpai status, distributes noten payments
-- Created `handle_round_end_after_win()`: manages dealer rotation based on winner
-- Created `advance_round()`: progresses rounds and handles game end detection
-- Modified `advance_turn()` to detect exhaustive draw when wall empties
-- Modified `declare_tsumo()` and `declare_ron()` to trigger round end handling
-- Updated UI with game type buttons and round display (e.g., "東1局 2本場")
-- Dealer continues (連荘) if dealer wins or is tenpai at exhaustive draw
-- Dealer rotates (輪荘) if dealer loses or is noten at exhaustive draw
+- **Core Files Modified**: `app/engine/game.py`, `app/state.py`, `app/components/board.py`, `app/app.py`
+- **Round Tracking**: Added `round_wind`, `round_number`, `honba_sticks`, `riichi_sticks`, `game_type` to game state
+- **Key Methods Implemented**:
+  - `handle_exhaustive_draw()`: Checks tenpai (using `HandEvaluator.check_tenpai()`), distributes 3000 points from noten to tenpai players, manages dealer rotation
+  - `handle_round_end_after_win()`: Manages dealer rotation based on winner (連荘 if dealer wins, 輪荘 if non-dealer wins)
+  - `advance_round()`: Progresses rounds (東1→東2→...→南1→...→南4), detects game end
+- **Game Flow**:
+  - `advance_turn()` checks for exhaustive draw when `wall` is empty
+  - `declare_tsumo()` and `declare_ron()` call `handle_round_end_after_win()` after scoring
+  - Automatic round progression and game restart until game end condition met
+- **Dealer Rotation Rules**:
+  - 連荘 (Renchan): Dealer continues when dealer wins OR dealer is tenpai at exhaustive draw (honba_sticks += 1)
+  - 輪荘 (Rinshou): Dealer rotates when non-dealer wins OR dealer is noten at exhaustive draw (honba_sticks = 0)
+- **UI Updates**:
+  - Two game start buttons: "New Game (半荘)" and "New Game (東風戦)"
+  - Round display shows game type and current round: "{game_type_label} - {round_name}"
+  - `round_name` computed var formats as "東1局 2本場" style
+
+**Known Limitations**:
+- **UI Display**: Tenpai/noten status is calculated internally but not shown to players after exhaustive draw
+- **Game End**: Game terminates correctly but no final score/ranking screen implemented
+- **Save/Export**: No functionality to save or export game results
+- **Oorasu Detection**: Last round is not explicitly marked or announced
+- **West/North Rounds**: System supports only East/South (半荘/東風戦); West/North rounds not implemented
+
+**Bug Fixes Applied** (during Phase 2.3):
+- Fixed drawn tile discard issue: Added `is_drawn_tile` parameter to properly identify and discard drawn tiles
+- Fixed winning detection with melds: Modified `check_tsumo()` and `check_ron()` to handle meld-adjusted hand sizes
+- Fixed drawn tile display: Changed from `hand.remove()` to `hand[:-1]` to correctly separate drawn tile
 
 ---
 
-## Phase 3: UI/UX Improvements (3-4 weeks)
+## Phase 3: UI/UX Improvements ✅ PARTIAL COMPLETE
 
 **Goal**: Create a polished, game-like experience
 
@@ -220,56 +244,91 @@ Build a web-based mahjong simulator where one person can play all four positions
   - Tile shadows and depth
   - Color-coding for tile suits
 
+**Status**: Not started - requires tile image assets
+
 **Estimated Time**: 1-2 weeks
 
-### 3.2 Layout Improvements
+### 3.2 Layout Improvements ✅ COMPLETE
 
 **Priority**: MEDIUM
 
-- [ ] **Traditional Mahjong Layout**
-  - Position players in cross pattern (上下左右)
-  - Center area for discards (like real table)
-  - Proper wall visualization
-  - Dora display area
+- [x] **Traditional Mahjong Layout**
+  - Position players in cross pattern (上下左右) ✅
+  - Center area for discards (like real table) ✅
+  - Dora display area ✅
 
-- [ ] **Player Position Views**
-  - Bottom: Current player (primary focus)
-  - Right: Next player (kamicha - 上家)
-  - Top: Opposite player (toimen - 対面)
-  - Left: Previous player (shimocha - 下家)
+- [x] **Player Position Views**
+  - Bottom: Player 0 (East) - larger display ✅
+  - Right: Player 1 (South) ✅
+  - Top: Player 2 (West) ✅
+  - Left: Player 3 (North) ✅
 
-- [ ] **Responsive Design**
-  - Desktop: full 4-player view
+- [x] **Tile Size Adjustment**
+  - Bottom player: normal size tiles ✅
+  - Other players: small size tiles ✅
+  - Dynamic sizing based on position ✅
+
+- [ ] **Responsive Design** (Deferred)
+  - Desktop: full 4-player view (✅ implemented)
   - Tablet: compact layout
-  - Mobile: focus on current player (optional)
+  - Mobile: focus on current player
   - Proper scaling for different screen sizes
 
-**Estimated Time**: 1-2 weeks
+**Completed**: 2026-03-12
 
-### 3.3 Enhanced Interactions
+**Implementation Details**:
+- **Core Files**: `app/components/mahjong_table.py` (new), `app/components/hand.py` (modified), `app/app.py` (modified)
+- **Layout Structure**:
+  - Cross-pattern with absolute positioning for top/bottom players
+  - hstack for middle row (left, center, right)
+  - Center discard area shows all 4 players' discards in a 2x2 grid
+- **Tile Sizing**:
+  - Added `tile_size` parameter to `render_hand()`, `render_tile_clickable()`, `render_tile_static()`
+  - Normal size: 18px font, 8px 12px padding
+  - Small size: 12px font, 4px 8px padding
+- **Center Discard Area**:
+  - Compact display showing recent discards for each player
+  - Player name labels for clarity
+  - 2x2 grid matching player positions
+- **Key Components**:
+  - `render_mahjong_table()`: Main table layout
+  - `render_center_discard_area()`: Center discard display
+  - `_render_discard_section()`: Individual player discard section
+
+**Notes**:
+- Responsive design (tablet/mobile) deferred to future phase
+- Layout works well on desktop (1200px+)
+
+### 3.3 Enhanced Interactions ✅ COMPLETE (Core Features)
 
 **Priority**: MEDIUM
 
-- [ ] **Action Buttons**
-  - Context-aware button visibility
+- [x] **End-of-Game Displays**
+  - Exhaustive draw (流局) display with tenpai/noten status ✅
+  - Final game end screen with rankings ✅
+  - Oorasu (final round) indicator ✅
+
+- [x] **Game Information Display**
+  - Dora indicators ✅
+  - Remaining tiles in wall ✅
+  - Current round and dealer indicator ✅
+  - Game type display (半荘/東風戦) ✅
+
+- [x] **Hand Organization**
+  - Auto-sort hand option ✅ **Completed in Phase 2.2.5**
+  - Drawn tile separation ✅ **Completed in Phase 2.2.5**
+
+- [ ] **Advanced Features** (Deferred)
+  - Context-aware button visibility (partial)
   - Keyboard shortcuts (R: Riichi, T: Tsumo, etc.)
-  - Auto-hide irrelevant actions
-  - Confirmation dialogs for important actions
-
-- [ ] **Game Information Display**
-  - Dora count with indicators
-  - Remaining tiles in wall
-  - Current round and dealer indicator
-  - Turn timer (optional)
-
-- [ ] **Hand Organization**
-  - ~~Auto-sort hand option~~ ✅ **Completed in Phase 2.2.5**
-  - ~~Drawn tile separation~~ ✅ **Completed in Phase 2.2.5**
   - Manual tile arrangement (drag-and-drop)
   - Visual tenpai hints
   - Tile grouping suggestions
+  - Turn timer
 
-**Estimated Time**: 1 week (reduced to ~3-4 days due to Phase 2.2.5 completion)
+**Completed**: 2026-03-12
+
+**Estimated Time for Remaining**: ~2-3 days
 
 ---
 
@@ -563,8 +622,10 @@ PARTITION BY DATE(timestamp);
 | Phase 2.1 | ✅ Complete | Winning detection & scoring | ✅ Done (2025-03-10) |
 | Phase 2.2 | ✅ Complete | Meld calls (Pon/Chi/Kan) | ✅ Done (2025-03-10) |
 | Phase 2.2.5 | ✅ Complete | Hand organization (drawn tile separation, auto-sort) | ✅ Done (2025-03-11) |
-| Phase 2.3 | 1-2 weeks | Round management | 🔄 Next |
-| Phase 3 | 3-4 weeks | UI/UX improvements (graphics, layout) | ⏳ Planned |
+| Phase 2.3 | ✅ Complete | Round management (exhaustive draw, game types) | ✅ Done (2026-03-12) |
+| Phase 3.1 | Not started | Tile graphics (requires image assets) | ⏳ Waiting |
+| Phase 3.2 | ✅ Complete | Layout improvements (cross-pattern, center discard) | ✅ Done (2026-03-12) |
+| Phase 3.3 | ✅ Partial | Enhanced interactions (end screens, oorasu indicator) | ✅ Core Done (2026-03-12) |
 | Phase 4 | 2-3 weeks | Data collection and BigQuery | ⏳ Planned |
 | Phase 5 | 4-6 weeks | Advanced features and deployment | ⏳ Planned |
 | **Total** | **13-19 weeks** | From current state to production | In Progress |
@@ -744,21 +805,33 @@ PARTITION BY DATE(timestamp);
 - UIで手牌（13枚）とツモ牌（1枚）を分離表示
 - 視覚的な明瞭さのため16pxの間隔で表示
 
-### 2.3 局管理
+### 2.3 局管理 ✅ 完了（コア機能）
 
 **優先度**: 中
 
-- [ ] **局終了処理**
-  - 流局検出
-  - テンパイ・ノーテン表示
-  - ノーテン罰符計算
-  - 親の連荘・輪荘判定
+- [x] **局終了処理**
+  - 流局検出（山が空の時） ✅
+  - テンパイ・ノーテン状態の内部チェック ✅
+  - ノーテン罰符計算（3000点分配） ✅
+  - 親の連荘・輪荘判定 ✅
 
-- [ ] **複数局対応**
-  - 東場全4局サポート
-  - 南場オプション
-  - 場風・親位置の追跡
-  - オーラス（最終局）検出
+- [x] **複数局対応**
+  - 東場全4局サポート ✅
+  - 南場対応（半荘） ✅
+  - 場風・親位置の追跡 ✅
+  - ゲームタイプ選択：半荘と東風戦 ✅
+
+- [x] **ゲーム終了**
+  - ゲーム終了条件の検出 ✅
+  - 局進行と適切なゲーム終了 ✅
+  - 現在の局とゲームタイプのUI表示 ✅
+
+- [ ] **UI改善**（Phase 3に延期）
+  - プレイヤーへのテンパイ・ノーテン表示
+  - 終局時の最終点数・順位表示
+  - ゲーム結果の保存・エクスポート
+
+**完了日**: 2026-03-12
 
 ---
 
@@ -782,21 +855,64 @@ PARTITION BY DATE(timestamp);
   - 画像読み込みとキャッシュの最適化
   - 縦横表示の両対応
 
-### 3.2 レイアウト改善
+### 3.2 レイアウト改善 ✅ 完了
 
 **優先度**: 中
 
-- [ ] **伝統的な麻雀レイアウト**
-  - 十字配置（上下左右）
-  - 中央に捨て牌エリア（実際の卓のように）
-  - 適切な山の可視化
-  - ドラ表示エリア
+- [x] **伝統的な麻雀レイアウト**
+  - 十字配置（上下左右） ✅
+  - 中央に捨て牌エリア（実際の卓のように） ✅
+  - ドラ表示エリア ✅
 
-- [ ] **プレイヤー配置ビュー**
-  - 下: 現在のプレイヤー（主フォーカス）
-  - 右: 次のプレイヤー（上家）
-  - 上: 対面
-  - 左: 前のプレイヤー（下家）
+- [x] **プレイヤー配置ビュー**
+  - 下: プレイヤー0（東） - 大きく表示 ✅
+  - 右: プレイヤー1（南） ✅
+  - 上: プレイヤー2（西） ✅
+  - 左: プレイヤー3（北） ✅
+
+- [x] **牌サイズ調整**
+  - 下のプレイヤー: 通常サイズの牌 ✅
+  - 他のプレイヤー: 小さいサイズの牌 ✅
+  - 位置に基づく動的サイズ調整 ✅
+
+- [ ] **レスポンシブデザイン**（延期）
+  - デスクトップ: 4人全員表示（✅ 実装済み）
+  - タブレット: コンパクトレイアウト
+  - モバイル: 現在のプレイヤーにフォーカス
+  - 画面サイズに応じた適切なスケーリング
+
+**完了日**: 2026-03-12
+
+### 3.3 拡張インタラクション ✅ 完了（コア機能）
+
+**優先度**: 中
+
+- [x] **ゲーム終了表示**
+  - 流局時のテンパイ・ノーテン表示 ✅
+  - 最終順位画面 ✅
+  - オーラス（最終局）インジケーター ✅
+
+- [x] **ゲーム情報表示**
+  - ドラ表示牌 ✅
+  - 残り山の枚数 ✅
+  - 現在の局と親表示 ✅
+  - ゲームタイプ表示（半荘/東風戦） ✅
+
+- [x] **手牌整理**
+  - 手牌の自動ソート ✅ **Phase 2.2.5で完了**
+  - ツモ牌の分離表示 ✅ **Phase 2.2.5で完了**
+
+- [ ] **高度な機能**（延期）
+  - コンテキスト依存のボタン表示（部分的）
+  - キーボードショートカット（R: 立直、T: ツモなど）
+  - 手動の牌配置（ドラッグ&ドロップ）
+  - テンパイのビジュアルヒント
+  - 牌グループ提案
+  - ターンタイマー
+
+**完了日**: 2026-03-12
+
+**残り作業の推定時間**: 約2-3日
 
 ---
 
@@ -893,8 +1009,10 @@ PARTITION BY DATE(timestamp);
 | Phase 2.1 | ✅ 完了 | 和了判定とスコアリング | ✅ 完了 (2025-03-10) |
 | Phase 2.2 | ✅ 完了 | 鳴き（ポン・チー・カン） | ✅ 完了 (2025-03-10) |
 | Phase 2.2.5 | ✅ 完了 | 手牌整理（ツモ牌分離、自動ソート） | ✅ 完了 (2025-03-11) |
-| Phase 2.3 | 1-2週 | 局管理 | 🔄 次のステップ |
-| Phase 3 | 3-4週 | UI/UX改善（グラフィック、レイアウト） | ⏳ 予定 |
+| Phase 2.3 | ✅ 完了 | 局管理（流局、ゲームタイプ） | ✅ 完了 (2026-03-12) |
+| Phase 3.1 | 未着手 | 牌グラフィック（画像素材が必要） | ⏳ 待機中 |
+| Phase 3.2 | ✅ 完了 | レイアウト改善（十字配置、中央捨て牌） | ✅ 完了 (2026-03-12) |
+| Phase 3.3 | ✅ 部分 | 拡張インタラクション（終了画面、オーラス） | ✅ コア完了 (2026-03-12) |
 | Phase 4 | 2-3週 | データ収集とBigQuery | ⏳ 予定 |
 | Phase 5 | 4-6週 | 高度な機能とデプロイ | ⏳ 予定 |
 | **合計** | **13-19週** | 現状からプロダクションまで | 進行中 |
@@ -903,22 +1021,23 @@ PARTITION BY DATE(timestamp);
 
 ## 次のフェーズの開始方法
 
-### 直近の次のステップ（Phase 2.3 - 局管理）
+### 直近の次のステップ（Phase 4 - データ収集とBigQuery）
 
-1. **局終了処理**
-   - 山が空の場合の流局検出
-   - 全プレイヤーのテンパイ・ノーテン状態表示
-   - ノーテン罰符計算（ノーテンからテンパイへ3000点）
-   - 親の連荘・輪荘判定
+**Phase 2.3とPhase 3（コア機能）が完了しました！**
 
-2. **複数局対応**
-   - 局進行の実装（東1局 → 東2局 → ... → 東4局）
-   - 場風と親位置の追跡
-   - 東場全4局サポート（最低）
-   - 南場オプション実装
+次のステップは：
 
-3. **ゲーム終了**
-   - ゲーム終了条件の検出（オーラス後）
-   - 最終点数と順位表示（1位/2位/3位/4位）
-   - ゲーム結果の保存・エクスポートオプション
-   - 「新規ゲーム開始」で全状態リセット
+1. **Phase 3.1（オプション）**: 牌画像の実装
+   - フリー素材の牌画像を入手
+   - テキスト牌を画像に置換
+   - アニメーション追加
+
+2. **Phase 4**: データ収集とBigQueryパイプライン
+   - 包括的なゲーム状態ログ
+   - BigQuery統合
+   - 分析クエリの実装
+
+3. **Phase 5**: 高度な機能とデプロイ
+   - アプリ内統計
+   - テストとQA
+   - プロダクションデプロイ

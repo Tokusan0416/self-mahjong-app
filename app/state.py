@@ -43,6 +43,10 @@ class MahjongState(rx.State):
     info_message: str = ""
     waiting_tiles: List[str] = []
 
+    # Exhaustive draw state
+    is_exhaustive_draw: bool = False
+    tenpai_players: List[int] = []  # Players in tenpai during exhaustive draw
+
     # Call availability (for showing buttons)
     can_ron: List[bool] = [False, False, False, False]  # Which players can ron
     can_tsumo: bool = False  # Current player can tsumo
@@ -69,6 +73,25 @@ class MahjongState(rx.State):
         self.can_ron = [False, False, False, False]
         # Check if dealer can immediately tsumo (rare but possible)
         self.can_tsumo = self._game.check_tsumo(self._game.current_player)
+
+    def start_new_game_hanchan(self):
+        """Start a new hanchan (半荘) game."""
+        self.start_new_game("hanchan")
+
+    def start_new_game_tonpuu(self):
+        """Start a new tonpuu (東風戦) game."""
+        self.start_new_game("tonpuu")
+
+    def continue_after_exhaustive_draw(self):
+        """Continue to next round after exhaustive draw."""
+        self._game.continue_after_exhaustive_draw()
+        self._sync_state()
+
+        if self.is_game_over:
+            self.info_message = "Game over!"
+        else:
+            self.info_message = f"{self.round_name} - New round started!"
+            self.can_tsumo = self._game.check_tsumo(self._game.current_player)
 
     def discard_tile(self, player_idx: int, tile_str: str, is_drawn_tile: bool = False):
         """
@@ -434,6 +457,10 @@ class MahjongState(rx.State):
         self.game_type = game_state["game_type"]
         self.dealer = game_state["dealer"]
 
+        # Sync exhaustive draw state
+        self.is_exhaustive_draw = game_state["is_exhaustive_draw"]
+        self.tenpai_players = game_state["tenpai_players"]
+
         # Sync player data
         for i, player_data in enumerate(game_state["players"]):
             last_drawn = player_data.get("last_drawn_tile", "")
@@ -484,9 +511,38 @@ class MahjongState(rx.State):
         wind = wind_names[self.round_wind]
         number = self.round_number + 1
         honba = f" {self.honba_sticks}本場" if self.honba_sticks > 0 else ""
-        return f"{wind}{number}局{honba}"
+
+        # Check if this is oorasu (final round)
+        is_oorasu = False
+        if self.game_type == "tonpuu" and self.round_wind == 0 and self.round_number == 3:
+            # 東風戦 東4局
+            is_oorasu = True
+        elif self.game_type == "hanchan" and self.round_wind == 1 and self.round_number == 3:
+            # 半荘 南4局
+            is_oorasu = True
+
+        oorasu_marker = " [オーラス]" if is_oorasu else ""
+        return f"{wind}{number}局{honba}{oorasu_marker}"
 
     @rx.var
     def game_type_label(self) -> str:
         """Get the game type label."""
         return "半荘" if self.game_type == "hanchan" else "東風戦"
+
+    @rx.var
+    def player_rankings(self) -> List[int]:
+        """
+        Get player rankings (1-4) based on scores.
+        Returns list of ranks corresponding to each player's position.
+        """
+        # Create list of (score, player_idx) tuples
+        score_pairs = [(self.player_scores[i], i) for i in range(4)]
+        # Sort by score descending
+        score_pairs.sort(key=lambda x: x[0], reverse=True)
+
+        # Assign ranks
+        rankings = [0, 0, 0, 0]
+        for rank, (score, player_idx) in enumerate(score_pairs, start=1):
+            rankings[player_idx] = rank
+
+        return rankings
