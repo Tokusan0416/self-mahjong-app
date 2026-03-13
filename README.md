@@ -1,6 +1,18 @@
 # 🀄 Mahjong Self-Play Simulator
 
-A web-based Mahjong simulator built with [Reflex](https://reflex.dev/) that allows you to play all four positions yourself. Designed for practice, game analysis, and generating training data for machine learning.
+A web-based Mahjong simulator that allows you to play all four positions yourself. Designed for practice, game analysis, and generating training data for machine learning.
+
+## ⚠️ Migration in Progress
+
+**Status**: Currently migrating from Reflex to Flask (backend) + React (frontend) architecture.
+
+- **Original Implementation**: Reflex 0.8 (Python full-stack)
+- **New Architecture**: Flask + React (TypeScript)
+- **Reason**: SVG tile image loading issues in Reflex static file serving
+- **Game Engine**: 100% preserved (pure Python, framework-agnostic)
+- **Timeline**: 3-4 working days
+
+See [MIGRATION.md](MIGRATION.md) for detailed migration plan and progress.
 
 ## Features
 
@@ -13,39 +25,53 @@ A web-based Mahjong simulator built with [Reflex](https://reflex.dev/) that allo
 
 ## Quick Start
 
-### Prerequisites
+### Current Version (Reflex - Limited Functionality)
 
+**Prerequisites**:
 - Python 3.11 or higher
 - pip or uv package manager
 
-### Installation
+**Note**: The current Reflex version has SVG image loading issues. Tiles display as text codes instead of images.
 
-1. **Clone the repository**:
 ```bash
+# Clone the repository
 git clone <repository-url>
 cd private-self-mahjong-reflex
-```
 
-2. **Install dependencies**:
-```bash
-# Using pip
+# Install dependencies
 pip install -e .
+# Or: uv pip install -e .
 
-# Or using uv (recommended)
-uv pip install -e .
-```
-
-3. **Initialize Reflex**:
-```bash
+# Initialize Reflex
 reflex init
-```
 
-4. **Run the application**:
-```bash
+# Run the application
 reflex run
 ```
 
 The app will be available at `http://localhost:3000`
+
+### New Version (Flask + React - Coming Soon)
+
+**Prerequisites**:
+- Python 3.11 or higher
+- Node.js 18 or higher
+
+**Status**: In development (Phase M1-M5)
+
+```bash
+# Backend (Flask)
+cd backend
+pip install -r requirements.txt
+python run.py
+
+# Frontend (React)
+cd frontend
+npm install
+npm run dev
+```
+
+Backend: `http://localhost:5000` | Frontend: `http://localhost:5173`
 
 ## How to Play
 
@@ -57,23 +83,54 @@ The app will be available at `http://localhost:3000`
 
 ## Project Structure
 
+### Current Structure (Reflex)
+
 ```
 private-self-mahjong-reflex/
 ├── app/                      # Main application package
-│   ├── engine/               # Game logic and rules
+│   ├── engine/               # Game logic and rules (REUSABLE ✅)
 │   │   ├── tiles.py          # Tile definitions and operations
 │   │   ├── player.py         # Player state management
 │   │   ├── game.py           # Core game loop and logic
-│   │   └── scoring.py        # Hand evaluation and scoring
-│   ├── components/           # Reflex UI components
+│   │   ├── scoring.py        # Hand evaluation and scoring
+│   │   └── hand_evaluator.py # Tenpai and yaku detection
+│   ├── components/           # Reflex UI components (TO BE REWRITTEN)
 │   │   ├── hand.py           # Hand and tile rendering
-│   │   └── board.py          # Board and controls
+│   │   ├── board.py          # Board and controls
+│   │   ├── tile_image.py     # Tile image components
+│   │   ├── mahjong_table.py  # Table layout
+│   │   └── ...               # Other UI components
 │   ├── state.py              # Reflex state management
 │   └── app.py                # Main Reflex application
+├── assets/                   # Static assets
+│   └── tiles/                # 43 SVG tile images (FluffyStuff)
 ├── docs/                     # Documentation
-├── assets/                   # Static assets (images, etc.)
 ├── pyproject.toml            # Project dependencies
 └── rxconfig.py               # Reflex configuration
+```
+
+### Planned Structure (Flask + React)
+
+```
+mahjong-flask-react/          # New project (to be created)
+├── backend/                  # Flask application
+│   ├── app/
+│   │   ├── engine/           # ← COPIED from app/engine/ (100% reusable)
+│   │   ├── routes.py         # REST API endpoints
+│   │   └── socketio_events.py # WebSocket handlers
+│   ├── static/tiles/         # ← COPIED from assets/tiles/
+│   ├── requirements.txt      # Python dependencies
+│   └── run.py                # Flask entry point
+├── frontend/                 # React application
+│   ├── src/
+│   │   ├── components/       # React components (Tile, Hand, Board, etc.)
+│   │   ├── hooks/            # Custom hooks (useGameState, useSocket)
+│   │   ├── types/            # TypeScript type definitions
+│   │   └── App.tsx           # Main React app
+│   ├── package.json          # Node dependencies
+│   └── vite.config.ts        # Vite configuration
+├── MIGRATION.md              # Migration documentation
+└── README.md                 # Updated documentation
 ```
 
 ## Documentation
@@ -87,27 +144,49 @@ private-self-mahjong-reflex/
 
 See [ROADMAP.md](ROADMAP.md) for the full development plan.
 
-### Current Status: Phase 1 Complete ✅
+### Current Status: Phase 1-2.3 Complete ✅ + Migration in Progress ⚠️
 
-- [x] Basic tile engine and game logic
-- [x] Reflex UI with all 4 player displays
-- [x] Discard and turn advancement
-- [x] Tenpai checking
-- [x] Riichi declaration
-- [x] Game logging
+**Reflex Version (Current)**:
+- [x] Phase 1: Basic tile engine and game logic
+- [x] Phase 2.1: Win detection (ron, tsumo) and full scoring
+- [x] Phase 2.2: Meld calls (pon, chi, kan) with priority system
+- [x] Phase 2.2.5: Hand organization (drawn tile separation, auto-sort)
+- [x] Phase 2.3: Round management (exhaustive draw, dealer rotation, game types)
+- [x] Phase 3.2: Cross-pattern table layout
+- [x] Phase 3.3: End screens (exhaustive draw, game end, oorasu indicator)
+- [⚠️] Phase 3.1: Tile graphics (SVG images not loading - **blocked**)
 
-### Next Steps: Phase 2
+**Flask + React Migration (In Progress)**:
+- [ ] Phase M1: Backend setup (Flask + SocketIO + game engine)
+- [ ] Phase M2: Frontend setup (React + TypeScript + Vite)
+- [ ] Phase M3: Core UI components (Tile, Hand, Board, MahjongTable)
+- [ ] Phase M4: Game flow integration (state management, WebSocket)
+- [ ] Phase M5: End screens & polish
 
-- [ ] Full win detection (tsumo and ron)
-- [ ] Yaku identification using `mahjong` library
-- [ ] Point calculation
-- [ ] Meld calls (pon, chi, kan)
+**Next Steps**: Complete migration (estimated 3-4 days), then proceed to Phase 4 (BigQuery integration)
 
 ## Technologies
 
-- **[Reflex](https://reflex.dev/)**: Full-stack Python framework (React + FastAPI)
+### Current Stack (Reflex - Being Phased Out)
+- **[Reflex](https://reflex.dev/) 0.8**: Full-stack Python framework (React + FastAPI)
 - **Python 3.11+**: Modern Python features and type hints
-- **mahjong library**: For comprehensive yaku and scoring rules (planned)
+- **mahjong library**: Comprehensive yaku and scoring rules
+
+### New Stack (Flask + React - In Progress)
+
+**Backend**:
+- **Flask 3.0+**: Lightweight Python web framework
+- **Flask-SocketIO**: WebSocket support for real-time updates
+- **Python 3.11+**: Modern Python with type hints
+- **mahjong library**: Yaku and scoring (preserved from Reflex version)
+
+**Frontend**:
+- **React 18+**: Modern React with functional components and hooks
+- **TypeScript**: Type-safe JavaScript
+- **Vite**: Fast development server and optimized builds
+- **TailwindCSS**: Utility-first CSS framework
+- **Socket.IO Client**: Real-time communication with backend
+- **Zustand**: Lightweight state management
 
 ## Future Features
 

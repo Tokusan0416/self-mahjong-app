@@ -1,110 +1,31 @@
 """
-Mahjong table layout component - cross pattern with center discard area.
+Mahjong table layout component - cross pattern with discards near each player.
 """
 
 import reflex as rx
 from typing import List
+from .tile_image import render_tile_static_image
 
 
-def render_center_discard_area(
-    player_discards: List[List[str]],
-    player_names: List[str],
-) -> rx.Component:
+def render_player_discards(discards: List[str], size: str = "small") -> rx.Component:
     """
-    Render center discard area showing all players' discards.
-
-    Args:
-        player_discards: List of discard piles for each player
-        player_names: Names of all players
-
-    Returns:
-        Reflex component for center discard area
-    """
-    return rx.box(
-        rx.vstack(
-            rx.text(
-                "捨て牌エリア (Discard Area)",
-                font_size="sm",
-                font_weight="bold",
-                color="#718096",
-                margin_bottom="8px",
-            ),
-            # Grid showing all 4 players' discards
-            rx.grid(
-                # Top player (Position 2)
-                _render_discard_section(player_discards[2], player_names[2], "top"),
-                # Left player (Position 3)
-                _render_discard_section(player_discards[3], player_names[3], "left"),
-                # Right player (Position 1)
-                _render_discard_section(player_discards[1], player_names[1], "right"),
-                # Bottom player (Position 0)
-                _render_discard_section(player_discards[0], player_names[0], "bottom"),
-                columns="2",
-                spacing="2",
-                width="100%",
-            ),
-            align="center",
-            padding="16px",
-            border="2px solid #e2e8f0",
-            border_radius="8px",
-            background_color="#f7fafc",
-            width="100%",
-            max_width="600px",
-        ),
-    )
-
-
-def _render_discard_section(
-    discards: List[str],
-    player_name: str,
-    position: str,
-) -> rx.Component:
-    """
-    Render a single player's discard section in the center area.
+    Render a player's discard pile.
 
     Args:
         discards: List of discarded tiles
-        player_name: Player name
-        position: Position label (top/bottom/left/right)
+        size: Size of tiles
 
     Returns:
-        Reflex component for discard section
+        Reflex component for discard pile
     """
-    return rx.box(
-        rx.vstack(
-            rx.text(
-                player_name,
-                font_size="xs",
-                font_weight="600",
-                color="#4a5568",
-            ),
-            rx.box(
-                rx.hstack(
-                    rx.foreach(
-                        discards,
-                        lambda tile: rx.text(
-                            tile,
-                            font_size="xs",
-                            padding="2px 4px",
-                            background_color="#ffffff",
-                            border="1px solid #cbd5e0",
-                            border_radius="2px",
-                        ),
-                    ),
-                    spacing="1",
-                    wrap="wrap",
-                ),
-                min_height="30px",
-                max_width="150px",
-                overflow="hidden",
-            ),
-            spacing="1",
-            align="center",
+    return rx.hstack(
+        rx.foreach(
+            discards,
+            lambda tile: render_tile_static_image(tile, size=size),
         ),
-        padding="8px",
-        background_color="#ffffff",
-        border_radius="4px",
-        border="1px solid #e2e8f0",
+        spacing="1",
+        wrap="wrap",
+        max_width="600px",
     )
 
 
@@ -126,11 +47,10 @@ def render_mahjong_table(
     Render mahjong table with cross-pattern layout.
 
     Layout:
-        Top: Player 2 (West)
-        Right: Player 1 (South)
-        Bottom: Player 0 (East) - larger display
-        Left: Player 3 (North)
-        Center: Discard area
+        Top: Player 2 (West) with discards below
+        Right: Player 1 (South) with discards to left
+        Bottom: Player 0 (East) with discards above - larger display
+        Left: Player 3 (North) with discards to right
 
     Args:
         player_hands: Hands for all players
@@ -167,6 +87,11 @@ def render_mahjong_table(
                     tile_size="small",
                 ),
                 render_melds(player_melds[2]),
+                rx.box(
+                    rx.text("Discards:", font_size="xs", font_weight="600", color="#718096", margin_bottom="4px"),
+                    render_player_discards(player_discards[2], size="small"),
+                    margin_top="8px",
+                ),
                 spacing="2",
                 align="center",
             ),
@@ -175,9 +100,9 @@ def render_mahjong_table(
             left="50%",
             transform="translateX(-50%)",
             width="100%",
-            max_width="600px",
+            max_width="700px",
         ),
-        # Middle row: Left, Center, Right
+        # Middle row: Left, Center (empty), Right
         rx.hstack(
             # Left player (Position 3 - North)
             rx.box(
@@ -196,18 +121,20 @@ def render_mahjong_table(
                         tile_size="small",
                     ),
                     render_melds(player_melds[3]),
+                    rx.box(
+                        rx.text("Discards:", font_size="xs", font_weight="600", color="#718096", margin_bottom="4px"),
+                        render_player_discards(player_discards[3], size="small"),
+                        margin_top="8px",
+                    ),
                     spacing="2",
                     align="center",
                 ),
-                width="200px",
+                width="250px",
             ),
-            # Center discard area
+            # Center area (empty - for visual balance)
             rx.box(
-                render_center_discard_area(player_discards, player_names),
                 flex="1",
-                display="flex",
-                justify_content="center",
-                align_items="center",
+                min_height="200px",
             ),
             # Right player (Position 1 - South)
             rx.box(
@@ -226,21 +153,31 @@ def render_mahjong_table(
                         tile_size="small",
                     ),
                     render_melds(player_melds[1]),
+                    rx.box(
+                        rx.text("Discards:", font_size="xs", font_weight="600", color="#718096", margin_bottom="4px"),
+                        render_player_discards(player_discards[1], size="small"),
+                        margin_top="8px",
+                    ),
                     spacing="2",
                     align="center",
                 ),
-                width="200px",
+                width="250px",
             ),
             spacing="4",
-            align="center",
+            align="start",
             justify="between",
             width="100%",
-            margin_top="120px",
+            margin_top="140px",
             margin_bottom="20px",
         ),
         # Bottom player (Position 0 - East) - larger display
         rx.box(
             rx.vstack(
+                rx.box(
+                    rx.text("Discards:", font_size="sm", font_weight="600", color="#718096", margin_bottom="8px"),
+                    render_player_discards(player_discards[0], size="normal"),
+                    margin_bottom="16px",
+                ),
                 render_hand(
                     player_hands[0],
                     0,
@@ -263,10 +200,10 @@ def render_mahjong_table(
             left="50%",
             transform="translateX(-50%)",
             width="100%",
-            max_width="800px",
+            max_width="900px",
         ),
         position="relative",
-        min_height="700px",
+        min_height="800px",
         width="100%",
         padding="20px",
     )

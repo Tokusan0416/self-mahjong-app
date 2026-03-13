@@ -218,35 +218,58 @@ Build a web-based mahjong simulator where one person can play all four positions
 
 ---
 
-## Phase 3: UI/UX Improvements ✅ PARTIAL COMPLETE
+## Phase 3: UI/UX Improvements ✅ COMPLETE
 
 **Goal**: Create a polished, game-like experience
 
-### 3.1 Tile Graphics
+**Status**: All core features completed (2026-03-13)
+
+### 3.1 Tile Graphics ✅ COMPLETE
 
 **Priority**: HIGH
 
-- [ ] **Tile Image Assets**
-  - Source or create tile images (SVG or PNG)
-  - Standard size: ~50x70px for regular display
-  - Rotated versions for discards
-  - Dora indicator styling
+- [x] **Tile Image Assets**
+  - Source tile images from FluffyStuff/riichi-mahjong-tiles (SVG) ✅
+  - All 34 tile types (9 manzu, 9 pinzu, 9 souzu, 7 jihai) ✅
+  - High-quality SVG format for scalability ✅
+  - Placed in `assets/tiles/` directory ✅
 
-- [ ] **Image Integration**
-  - Replace text tiles ("1m") with images
-  - Maintain accessibility (alt text, title attributes)
-  - Optimize image loading and caching
-  - Support both horizontal and vertical display
+- [x] **Image Integration**
+  - Replace text tiles ("1m") with SVG images ✅
+  - Tile code to filename mapping system ✅
+  - Accessibility support (alt attributes) ✅
+  - Support for normal (40x56px) and small (32x42px) sizes ✅
 
-- [ ] **Visual Polish**
-  - Smooth tile animations (discard, draw, meld)
-  - Hover effects and active states
-  - Tile shadows and depth
-  - Color-coding for tile suits
+- [x] **Visual Polish**
+  - Smooth hover animations with scale and lift effects ✅
+  - Gradient backgrounds on clickable tiles ✅
+  - Shadow effects (2px static, 8px on hover) ✅
+  - Cubic-bezier easing for smooth transitions (0.3s) ✅
+  - Enhanced melds display with gradient backgrounds ✅
 
-**Status**: Not started - requires tile image assets
+**Completed**: 2026-03-13
 
-**Estimated Time**: 1-2 weeks
+**Implementation Details**:
+- **Core Files**: `app/components/tile_image.py` (new), `app/components/hand.py` (updated), `app/components/mahjong_table.py` (updated)
+- **Tile Mapping**: Created `TILE_IMAGE_MAP` dictionary (tile code → filename)
+  - Examples: "1m" → "Man1.svg", "5p" → "Pin5.svg", "1z" → "Ton.svg"
+- **Image Components**:
+  - `render_tile_image()`: Base component with size/clickability options
+  - `render_tile_static_image()`: Non-interactive display
+  - `render_tile_clickable_image()`: Interactive with click handler
+- **Visual Effects**:
+  - Clickable: Gradient background, 6px lift on hover, 1.08x scale, shadow
+  - Static: Subtle shadow for depth
+  - Transition: cubic-bezier(0.4, 0, 0.2, 1)
+- **Asset Management**:
+  - Tiles in `assets/tiles/` → symlinked to `.web/public/tiles/`
+  - 43 SVG files (34 tiles + variants)
+- **Center Discard Area**: All players' discards use small tile images ✅
+
+**Notes**:
+- Melds display remains text-based (Reflex variable system limitation)
+- Enhanced with gradient backgrounds
+- Images: FluffyStuff/riichi-mahjong-tiles (CC0 License)
 
 ### 3.2 Layout Improvements ✅ COMPLETE
 
@@ -329,6 +352,165 @@ Build a web-based mahjong simulator where one person can play all four positions
 **Completed**: 2026-03-12
 
 **Estimated Time for Remaining**: ~2-3 days
+
+---
+
+## Phase 3.1 Alternative: Flask/React Migration ⚠️ IN PROGRESS
+
+**Status**: Migration in progress (2026-03-13)
+
+**Rationale**: Due to persistent SVG image loading issues in Reflex 0.8, we are migrating to a Flask (backend) + React (frontend) architecture. This provides:
+- ✅ Mature static asset management
+- ✅ Industry-standard stack with extensive documentation
+- ✅ Better frontend control and flexibility
+- ✅ Preservation of all game engine code (100% reusable)
+
+### Migration Overview
+
+**What's Preserved**:
+- ✅ All game engine code (`app/engine/` directory - pure Python)
+- ✅ Game logic and rules (tile management, scoring, melds, round management)
+- ✅ 43 SVG tile images from FluffyStuff/riichi-mahjong-tiles
+- ✅ All Phase 1-2.3 features and mechanics
+
+**What's Being Rewritten**:
+- ❌ UI Layer (`app/components/` → React components)
+- ❌ State Management (`app/state.py` → React state + API)
+- ❌ Application Entry (`app/app.py` → Flask routes + React app)
+
+### Migration Phases (3-5 days)
+
+#### Phase M1: Backend Setup (Day 1 - Morning)
+**Estimated Time**: 3-4 hours
+
+- [ ] **Flask Application**
+  - Initialize Flask app with factory pattern
+  - Set up Flask-SocketIO for real-time updates
+  - Configure CORS for development
+
+- [ ] **Copy Game Engine**
+  - Copy `app/engine/` to `backend/app/engine/`
+  - Verify imports and functionality
+  - No code changes needed
+
+- [ ] **REST API**
+  - Endpoints for game actions (new game, discard, riichi, ron, tsumo)
+  - Endpoints for meld calls (pon, chi, kan, pass)
+  - Tenpai checking endpoint
+
+- [ ] **WebSocket Events**
+  - Real-time game state updates
+  - Call availability notifications
+  - Round/game end events
+
+- [ ] **Static Files**
+  - Copy tile images to `backend/static/tiles/`
+  - Test image serving
+
+#### Phase M2: Frontend Setup (Day 1 - Afternoon)
+**Estimated Time**: 3-4 hours
+
+- [ ] **React + Vite Project**
+  - Initialize React TypeScript project
+  - Install dependencies (SocketIO, Zustand, TailwindCSS)
+  - Configure development environment
+
+- [ ] **Type Definitions**
+  - Define TypeScript interfaces for game state
+  - Player, GameState, WinInfo types
+  - API request/response types
+
+- [ ] **API Client & WebSocket**
+  - Create API client functions
+  - Set up SocketIO connection hook
+  - Implement state synchronization
+
+#### Phase M3: Core UI Components (Day 2)
+**Estimated Time**: 6-8 hours
+
+- [ ] **Tile Component** (1 hour)
+  - SVG image display with fallback
+  - Click handlers and hover effects
+  - Size variants (normal, small)
+
+- [ ] **Hand Component** (2 hours)
+  - Display 13 tiles + drawn tile separately
+  - Interactive vs static modes
+  - Call buttons (Ron, Tsumo, Pon, Chi, Kan)
+
+- [ ] **Board Component** (1 hour)
+  - Current player indicator
+  - Wall remaining counter
+  - Dora indicators display
+  - Round information
+
+- [ ] **MahjongTable Component** (2-3 hours)
+  - Cross-pattern layout (上下左右)
+  - Four player positions
+  - Player-adjacent discards
+  - Responsive design
+
+- [ ] **Controls Component** (1 hour)
+  - New Game buttons (半荘/東風戦)
+  - Check Tenpai button
+  - Riichi declaration
+  - Pass on calls
+  - Export logs
+
+#### Phase M4: Game Flow Integration (Day 3 - Morning)
+**Estimated Time**: 3-4 hours
+
+- [ ] **State Management**
+  - Connect components to WebSocket state
+  - Implement optimistic updates
+  - Handle state synchronization
+
+- [ ] **Game Actions**
+  - Wire up discard actions
+  - Connect call buttons
+  - Implement riichi flow
+  - Pass on calls
+
+- [ ] **Real-time Updates**
+  - Listen to SocketIO events
+  - Update UI on state changes
+  - Handle connection errors
+
+#### Phase M5: End Screens & Polish (Day 3 - Afternoon)
+**Estimated Time**: 3-4 hours
+
+- [ ] **Exhaustive Draw Overlay**
+  - Tenpai/noten status display
+  - 3000 point payment breakdown
+  - Continue button
+
+- [ ] **Game End Screen**
+  - Final rankings with medals (🥇🥈🥉)
+  - Score differences
+  - New game buttons
+
+- [ ] **Visual Polish**
+  - Smooth animations (CSS transitions)
+  - Hover effects
+  - Loading states
+  - Responsive design
+
+- [ ] **Testing**
+  - Play through complete games
+  - Test all edge cases
+  - Verify all features working
+
+**Total Estimated Time**: 18-24 hours (3-4 working days)
+
+**Documentation**: See [MIGRATION.md](MIGRATION.md) for detailed migration guide including:
+- Architecture design (Flask + React)
+- API design (REST + WebSocket)
+- Project structure
+- Code migration mapping
+- Testing strategy
+- Rollback plan
+
+**Status**: Phase M1 ready to begin
 
 ---
 
@@ -623,10 +805,16 @@ PARTITION BY DATE(timestamp);
 | Phase 2.2 | ✅ Complete | Meld calls (Pon/Chi/Kan) | ✅ Done (2025-03-10) |
 | Phase 2.2.5 | ✅ Complete | Hand organization (drawn tile separation, auto-sort) | ✅ Done (2025-03-11) |
 | Phase 2.3 | ✅ Complete | Round management (exhaustive draw, game types) | ✅ Done (2026-03-12) |
-| Phase 3.1 | Not started | Tile graphics (requires image assets) | ⏳ Waiting |
+| Phase 3.1 (Reflex) | ⚠️ Partial | Tile graphics (image loading issues) | ⚠️ Blocked (2026-03-13) |
 | Phase 3.2 | ✅ Complete | Layout improvements (cross-pattern, center discard) | ✅ Done (2026-03-12) |
-| Phase 3.3 | ✅ Partial | Enhanced interactions (end screens, oorasu indicator) | ✅ Core Done (2026-03-12) |
-| Phase 4 | 2-3 weeks | Data collection and BigQuery | ⏳ Planned |
+| Phase 3.3 | ✅ Complete | Enhanced interactions (end screens, oorasu indicator) | ✅ Done (2026-03-12) |
+| **Phase M1** | **3-4 hours** | **Flask backend setup** | **⏳ In Progress** |
+| **Phase M2** | **3-4 hours** | **React frontend setup** | **⏳ Next** |
+| **Phase M3** | **6-8 hours** | **Core UI components** | **⏳ Planned** |
+| **Phase M4** | **3-4 hours** | **Game flow integration** | **⏳ Planned** |
+| **Phase M5** | **3-4 hours** | **End screens & polish** | **⏳ Planned** |
+| **Migration** | **3-4 days** | **Reflex → Flask/React** | **⚠️ In Progress (2026-03-13)** |
+| Phase 4 | 2-3 weeks | Data collection and BigQuery | ⏳ After Migration |
 | Phase 5 | 4-6 weeks | Advanced features and deployment | ⏳ Planned |
 | **Total** | **13-19 weeks** | From current state to production | In Progress |
 
@@ -634,25 +822,34 @@ PARTITION BY DATE(timestamp);
 
 ## Getting Started with Next Phase
 
-### Immediate Next Steps (Phase 2.3 - Round Management)
+### Immediate Next Steps (Migration to Flask/React)
 
-1. **End-of-Round Handling**
-   - Detect exhaustive draw (流局) when wall is empty
-   - Show tenpai/noten status for all players
-   - Calculate noten payments (3000 points from noten to tenpai players)
-   - Handle dealer rotation (連荘 vs 輪荘)
+**Current Status**: Phase 1-2.3 and Phase 3.2-3.3 complete in Reflex. Migrating to Flask/React due to image loading issues.
 
-2. **Multiple Rounds**
-   - Implement round progression (East 1 → East 2 → ... → East 4)
-   - Track round wind and dealer position
-   - Support full East round (東場 4 rounds minimum)
-   - Optional South round (南場) implementation
+**Next Actions**:
 
-3. **Game Completion**
-   - Detect game end conditions (after oorasu)
-   - Show final scores and rankings (1st/2nd/3rd/4th)
-   - Option to save/export game results
-   - "Start New Game" resets all state
+1. **Phase M1: Backend Setup** (Start Here!)
+   - Create Flask application structure with factory pattern
+   - Copy game engine code (`app/engine/` → `backend/app/engine/`)
+   - Implement REST API endpoints for all game actions
+   - Set up Flask-SocketIO for real-time updates
+   - Copy and serve tile images from `backend/static/tiles/`
+
+2. **Phase M2: Frontend Setup**
+   - Initialize React + TypeScript + Vite project
+   - Install dependencies (SocketIO, Zustand, TailwindCSS)
+   - Create TypeScript type definitions for game state
+   - Set up API client and WebSocket hooks
+
+3. **Phase M3-M5: UI Implementation**
+   - Build React components (Tile, Hand, Board, MahjongTable)
+   - Wire up game flow and actions
+   - Implement end screens (exhaustive draw, game end)
+   - Apply visual polish and test thoroughly
+
+**Estimated Timeline**: 3-4 working days (18-24 hours)
+
+**Documentation**: See [MIGRATION.md](MIGRATION.md) for detailed step-by-step guide
 
 ### Recommended Reading
 
@@ -1010,10 +1207,16 @@ PARTITION BY DATE(timestamp);
 | Phase 2.2 | ✅ 完了 | 鳴き（ポン・チー・カン） | ✅ 完了 (2025-03-10) |
 | Phase 2.2.5 | ✅ 完了 | 手牌整理（ツモ牌分離、自動ソート） | ✅ 完了 (2025-03-11) |
 | Phase 2.3 | ✅ 完了 | 局管理（流局、ゲームタイプ） | ✅ 完了 (2026-03-12) |
-| Phase 3.1 | 未着手 | 牌グラフィック（画像素材が必要） | ⏳ 待機中 |
+| Phase 3.1 (Reflex) | ⚠️ 部分 | 牌グラフィック（画像読込問題） | ⚠️ ブロック (2026-03-13) |
 | Phase 3.2 | ✅ 完了 | レイアウト改善（十字配置、中央捨て牌） | ✅ 完了 (2026-03-12) |
-| Phase 3.3 | ✅ 部分 | 拡張インタラクション（終了画面、オーラス） | ✅ コア完了 (2026-03-12) |
-| Phase 4 | 2-3週 | データ収集とBigQuery | ⏳ 予定 |
+| Phase 3.3 | ✅ 完了 | 拡張インタラクション（終了画面、オーラス） | ✅ 完了 (2026-03-12) |
+| **Phase M1** | **3-4時間** | **Flask バックエンド構築** | **⏳ 進行中** |
+| **Phase M2** | **3-4時間** | **React フロントエンド構築** | **⏳ 次** |
+| **Phase M3** | **6-8時間** | **コアUIコンポーネント** | **⏳ 予定** |
+| **Phase M4** | **3-4時間** | **ゲームフロー統合** | **⏳ 予定** |
+| **Phase M5** | **3-4時間** | **終了画面と仕上げ** | **⏳ 予定** |
+| **マイグレーション** | **3-4日** | **Reflex → Flask/React** | **⚠️ 進行中 (2026-03-13)** |
+| Phase 4 | 2-3週 | データ収集とBigQuery | ⏳ マイグレーション後 |
 | Phase 5 | 4-6週 | 高度な機能とデプロイ | ⏳ 予定 |
 | **合計** | **13-19週** | 現状からプロダクションまで | 進行中 |
 
@@ -1021,23 +1224,31 @@ PARTITION BY DATE(timestamp);
 
 ## 次のフェーズの開始方法
 
-### 直近の次のステップ（Phase 4 - データ収集とBigQuery）
+### 直近の次のステップ（Flask/React マイグレーション）
 
-**Phase 2.3とPhase 3（コア機能）が完了しました！**
+**現在の状況**: Phase 1-2.3 および Phase 3.2-3.3 が Reflex で完成。画像読込問題により Flask/React へ移行中。
 
-次のステップは：
+**次のアクション**:
 
-1. **Phase 3.1（オプション）**: 牌画像の実装
-   - フリー素材の牌画像を入手
-   - テキスト牌を画像に置換
-   - アニメーション追加
+1. **Phase M1: バックエンド構築** (ここから開始！)
+   - Flask アプリケーション構造作成（ファクトリーパターン）
+   - ゲームエンジンコードをコピー (`app/engine/` → `backend/app/engine/`)
+   - 全ゲームアクション用の REST API エンドポイント実装
+   - Flask-SocketIO でリアルタイム更新設定
+   - `backend/static/tiles/` から牌画像コピーと配信
 
-2. **Phase 4**: データ収集とBigQueryパイプライン
-   - 包括的なゲーム状態ログ
-   - BigQuery統合
-   - 分析クエリの実装
+2. **Phase M2: フロントエンド構築**
+   - React + TypeScript + Vite プロジェクト初期化
+   - 依存関係インストール (SocketIO, Zustand, TailwindCSS)
+   - ゲーム状態用の TypeScript 型定義作成
+   - API クライアントと WebSocket フック設定
 
-3. **Phase 5**: 高度な機能とデプロイ
-   - アプリ内統計
-   - テストとQA
-   - プロダクションデプロイ
+3. **Phase M3-M5: UI 実装**
+   - React コンポーネント構築 (Tile, Hand, Board, MahjongTable)
+   - ゲームフローとアクション接続
+   - 終了画面実装（流局、ゲーム終了）
+   - ビジュアル仕上げと徹底的なテスト
+
+**推定スケジュール**: 3-4営業日（18-24時間）
+
+**ドキュメント**: 詳細な手順は [MIGRATION.md](MIGRATION.md) を参照

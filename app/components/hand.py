@@ -4,6 +4,7 @@ UI components for rendering player hands and tiles.
 
 import reflex as rx
 from typing import List
+from .tile_image import render_tile_clickable_image, render_tile_static_image
 
 
 def render_tile_clickable(tile_str: str, player_idx: int, is_drawn_tile: bool = False, size: str = "normal") -> rx.Component:
@@ -19,35 +20,7 @@ def render_tile_clickable(tile_str: str, player_idx: int, is_drawn_tile: bool = 
     Returns:
         Reflex component for the tile
     """
-    from ..state import MahjongState
-
-    # Size configurations
-    if size == "small":
-        padding_val = "4px 8px"
-        font_size_val = "12px"
-    else:  # normal
-        padding_val = "8px 12px"
-        font_size_val = "18px"
-
-    return rx.button(
-        tile_str,
-        on_click=lambda: MahjongState.discard_tile(player_idx, tile_str, is_drawn_tile),
-        padding=padding_val,
-        margin="2px",
-        border="2px solid #333",
-        border_radius="4px",
-        background="white",
-        color="#1a202c",
-        font_size=font_size_val,
-        font_weight="bold",
-        font_family="monospace",
-        cursor="pointer",
-        transition="all 0.2s",
-        _hover={
-            "background": "#e8f4f8",
-            "transform": "translateY(-4px)",
-        },
-    )
+    return render_tile_clickable_image(tile_str, player_idx, is_drawn_tile, size)
 
 
 def render_tile_static(tile_str: str, size: str = "normal") -> rx.Component:
@@ -61,13 +34,7 @@ def render_tile_static(tile_str: str, size: str = "normal") -> rx.Component:
     Returns:
         Reflex component for the tile
     """
-    # Size configurations
-    if size == "small":
-        padding_val = "4px 8px"
-        font_size_val = "12px"
-    else:  # normal
-        padding_val = "8px 12px"
-        font_size_val = "18px"
+    return render_tile_static_image(tile_str, size)
 
     return rx.box(
         tile_str,
@@ -126,7 +93,8 @@ def render_hand(
                 lambda tile: render_tile_clickable(tile, player_idx, False, tile_size)
             ),
             spacing="1",
-            wrap="wrap",
+            overflow_x="auto",
+            flex_wrap="nowrap",
         ),
         rx.hstack(
             rx.foreach(
@@ -134,7 +102,8 @@ def render_hand(
                 lambda tile: render_tile_static(tile, tile_size)
             ),
             spacing="1",
-            wrap="wrap",
+            overflow_x="auto",
+            flex_wrap="nowrap",
         ),
     )
 
@@ -240,16 +209,27 @@ def render_melds(melds: List[str]) -> rx.Component:
     return rx.cond(
         melds.length() > 0,
         rx.vstack(
-            rx.text("Melds:", font_weight="bold", font_size="sm", color="gray"),
-            rx.foreach(
-                melds,
-                lambda meld_str: rx.badge(
-                    meld_str,
-                    color_scheme="green",
-                    padding="4px 8px",
-                    margin="2px",
-                    font_size="sm",
-                )
+            rx.text("Melds:", font_weight="bold", font_size="sm", color="#4a5568"),
+            rx.hstack(
+                rx.foreach(
+                    melds,
+                    lambda meld_str: rx.box(
+                        rx.text(
+                            meld_str,
+                            font_size="sm",
+                            font_weight="600",
+                            color="#059669",
+                        ),
+                        padding="8px 12px",
+                        background="linear-gradient(135deg, #d1fae5 0%, #a7f3d0 100%)",
+                        border="2px solid #10b981",
+                        border_radius="8px",
+                        box_shadow="0 2px 4px rgba(16, 185, 129, 0.2)",
+                        margin="2px",
+                    ),
+                ),
+                spacing="2",
+                wrap="wrap",
             ),
             align_items="flex-start",
             padding="8px",
