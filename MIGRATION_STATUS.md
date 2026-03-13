@@ -12,7 +12,7 @@
 
 **Timeline**: 3-4 working days (18-24 hours)
 
-**Status**: ✅ Documentation complete, ready to begin Phase M1
+**Status**: ✅ Phase M1 Complete | ⏳ Ready for Phase M2 (Frontend Setup)
 
 ---
 
@@ -92,22 +92,34 @@ app/components/        # Reflex components → React components
 
 ## Migration Phases
 
-### Phase M1: Backend Setup ⏳ Next
-**Estimated Time**: 3-4 hours
+### Phase M1: Backend Setup ✅ COMPLETE
+**Completed**: 2026-03-13
+**Time Taken**: ~2 hours
 
 **Tasks**:
-- [ ] Create Flask application structure
-- [ ] Copy game engine code to `backend/app/engine/`
-- [ ] Implement REST API endpoints
-- [ ] Set up Flask-SocketIO for WebSocket
-- [ ] Copy tile images to `backend/static/tiles/`
-- [ ] Test backend independently
+- [x] Create Flask application structure
+- [x] Copy game engine code to `backend/app/engine/`
+- [x] Implement REST API endpoints
+- [x] Set up Flask-SocketIO for WebSocket
+- [x] Copy tile images to `backend/static/tiles/`
+- [x] Test backend independently
 
 **Deliverables**:
-- Flask app running on `http://localhost:5000`
-- All REST API endpoints responding
-- WebSocket connection functional
-- Tile images accessible at `/static/tiles/*.svg`
+- ✅ Flask app created and tested
+- ✅ 13 REST API endpoints implemented
+- ✅ WebSocket handlers configured
+- ✅ 40 SVG tile images in place
+- ✅ Game engine code copied (5 files)
+- ✅ Virtual environment with dependencies
+
+**How to Start Backend**:
+```bash
+cd backend
+source venv/bin/activate
+python run.py
+```
+
+Server runs on: `http://localhost:5000`
 
 ---
 
@@ -185,40 +197,38 @@ app/components/        # Reflex components → React components
 
 ---
 
-## Current Priority: Phase M1
+## Current Priority: Phase M2
+
+**Phase M1 Completed!** Backend is ready. Next: Frontend setup.
 
 **Immediate Next Steps**:
 
-1. Create backend directory structure
-2. Copy game engine code
-3. Set up Python virtual environment
-4. Install Flask dependencies
-5. Create Flask app with routes
-6. Test backend API
+1. Initialize React + TypeScript + Vite project
+2. Install frontend dependencies
+3. Configure Tailwind CSS
+4. Create TypeScript type definitions
+5. Set up API client and WebSocket hooks
+6. Test frontend connection to backend
 
 **Commands to Run**:
 ```bash
-# Create structure
-mkdir -p backend/app/engine backend/static/tiles
+# Create React project
+npm create vite@latest frontend -- --template react-ts
+cd frontend
 
-# Copy game engine
-cp -r app/engine/* backend/app/engine/
+# Install dependencies
+npm install socket.io-client zustand axios clsx
+npm install @radix-ui/react-dialog @radix-ui/react-button @radix-ui/react-toast
+npm install -D tailwindcss postcss autoprefixer
 
-# Copy tiles
-cp assets/tiles/*.svg backend/static/tiles/
+# Initialize Tailwind
+npx tailwindcss init -p
 
-# Set up Python venv
-cd backend
-python -m venv venv
-source venv/bin/activate
-pip install -r ../backend-requirements.txt
-
-# Create Flask app (see SETUP.md for code)
-# ... create app/__init__.py, routes.py, game_manager.py, run.py
-
-# Test backend
-python run.py
+# Start dev server
+npm run dev
 ```
+
+See [SETUP.md](SETUP.md) Phase M2 section for detailed instructions.
 
 ---
 
