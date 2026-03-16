@@ -4,6 +4,8 @@
 import { useState } from 'react';
 import { useSocket } from './hooks/useSocket';
 import { gameApi } from './api/gameApi';
+import Board from './components/Board';
+import MahjongTable from './components/MahjongTable';
 
 function App() {
   const { gameState, isConnected, error, sendPing, updateGameState } = useSocket();
@@ -32,11 +34,48 @@ function App() {
     sendPing();
   };
 
+  // Game action handlers
+  const handleDiscardTile = (playerIdx: number, tile: string, isDrawn: boolean) => {
+    console.log(`Player ${playerIdx} discarded ${tile} (drawn: ${isDrawn})`);
+    // TODO: Call API to discard tile
+    // gameApi.discardTile(playerIdx, tile, isDrawn);
+  };
+
+  const handleDeclareRon = (playerIdx: number) => {
+    console.log(`Player ${playerIdx} declares Ron`);
+    // TODO: Call API
+  };
+
+  const handleDeclareTsumo = (playerIdx: number) => {
+    console.log(`Player ${playerIdx} declares Tsumo`);
+    // TODO: Call API
+  };
+
+  const handleDeclarePon = (playerIdx: number) => {
+    console.log(`Player ${playerIdx} declares Pon`);
+    // TODO: Call API
+  };
+
+  const handleDeclareChi = (playerIdx: number) => {
+    console.log(`Player ${playerIdx} declares Chi`);
+    // TODO: Call API
+  };
+
+  const handleDeclareKan = (playerIdx: number) => {
+    console.log(`Player ${playerIdx} declares Kan`);
+    // TODO: Call API
+  };
+
+  const handlePass = (playerIdx: number) => {
+    console.log(`Player ${playerIdx} passes`);
+    // TODO: Call API
+  };
+
   return (
     <div className="min-h-screen bg-gray-50">
       {/* Header */}
       <header className="bg-white shadow-sm border-b border-gray-200">
-        <div className="max-w-7xl mx-auto px-4 py-4">
+        <div className="max-w-[1200px] mx-auto px-4 py-4">
           <h1 className="text-3xl font-bold text-center text-gray-900">
             🀄 Mahjong Self-Play Simulator
           </h1>
@@ -47,7 +86,7 @@ function App() {
       </header>
 
       {/* Main Content */}
-      <main className="max-w-7xl mx-auto px-4 py-8">
+      <main className="max-w-[1200px] mx-auto px-4 py-8">
         {/* Connection Status */}
         <div className="bg-white rounded-lg shadow p-6 mb-6">
           <h2 className="text-xl font-semibold mb-4">Connection Status</h2>
@@ -123,66 +162,32 @@ function App() {
           <h2 className="text-xl font-semibold mb-4">Game State</h2>
 
           {gameState ? (
-            <div className="space-y-4">
-              {/* Basic Info */}
-              <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-sm">
-                <div>
-                  <div className="text-gray-500">Game Type</div>
-                  <div className="font-medium">{gameState.game_type}</div>
-                </div>
-                <div>
-                  <div className="text-gray-500">Current Player</div>
-                  <div className="font-medium">{gameState.player_names[gameState.current_player]}</div>
-                </div>
-                <div>
-                  <div className="text-gray-500">Wall Remaining</div>
-                  <div className="font-medium">{gameState.wall_remaining} tiles</div>
-                </div>
-                <div>
-                  <div className="text-gray-500">Turn</div>
-                  <div className="font-medium">{gameState.turn_count}</div>
-                </div>
-              </div>
+            <div className="space-y-6">
+              {/* Board Component - Game Info */}
+              <Board
+                doraIndicators={gameState.dora_indicators}
+                wallRemaining={gameState.wall_remaining}
+                roundWind={gameState.round_wind}
+                roundNumber={gameState.round_number}
+                honbaSticks={gameState.honba_sticks}
+                riichiSticks={gameState.riichi_sticks}
+                currentPlayer={gameState.current_player}
+                playerNames={gameState.player_names}
+                gameType={gameState.game_type}
+                turnCount={gameState.turn_count}
+              />
 
-              {/* Players Info */}
-              <div>
-                <h3 className="font-medium mb-2">Players</h3>
-                <div className="space-y-2">
-                  {gameState.players.map((player, idx) => (
-                    <div
-                      key={idx}
-                      className={`p-3 rounded border ${
-                        idx === gameState.current_player
-                          ? 'border-primary-500 bg-primary-50'
-                          : 'border-gray-200'
-                      }`}
-                    >
-                      <div className="flex justify-between items-center">
-                        <div>
-                          <span className="font-medium">{gameState.player_names[idx]}</span>
-                          {idx === gameState.dealer && (
-                            <span className="ml-2 text-xs bg-yellow-100 text-yellow-800 px-2 py-1 rounded">
-                              Dealer
-                            </span>
-                          )}
-                          {player.is_riichi && (
-                            <span className="ml-2 text-xs bg-red-100 text-red-800 px-2 py-1 rounded">
-                              Riichi
-                            </span>
-                          )}
-                        </div>
-                        <div className="text-right">
-                          <div className="text-sm text-gray-500">Score</div>
-                          <div className="font-medium">{player.score}</div>
-                        </div>
-                      </div>
-                      <div className="mt-2 text-sm text-gray-600">
-                        Hand: {player.hand.length} tiles | Discards: {player.discards.length}
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              </div>
+              {/* Mahjong Table - Cross Layout */}
+              <MahjongTable
+                gameState={gameState}
+                onDiscardTile={handleDiscardTile}
+                onDeclareRon={handleDeclareRon}
+                onDeclareTsumo={handleDeclareTsumo}
+                onDeclarePon={handleDeclarePon}
+                onDeclareChi={handleDeclareChi}
+                onDeclareKan={handleDeclareKan}
+                onPass={handlePass}
+              />
 
               {/* Raw JSON (for debugging) */}
               <details className="mt-4">
@@ -204,7 +209,7 @@ function App() {
 
       {/* Footer */}
       <footer className="mt-12 py-6 text-center text-sm text-gray-500">
-        <p>Phase M2: Frontend Setup Complete ✓</p>
+        <p>Phase M3: UI Components (Tile ✓, Hand ✓, Board ✓, MahjongTable ✓)</p>
         <p className="mt-1">
           Backend: <code className="text-xs bg-gray-100 px-2 py-1 rounded">http://localhost:5000</code>
           {' | '}

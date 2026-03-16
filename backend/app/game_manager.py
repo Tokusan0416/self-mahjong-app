@@ -45,10 +45,10 @@ class GameManager:
                     'melds': p.melds,  # Already strings
                     'score': p.score,
                     'is_riichi': p.is_riichi,
-                    'last_drawn_tile': str(p.last_drawn_tile) if p.last_drawn_tile else '',
+                    'last_drawn_tile': str(p.last_drawn_tile) if (p.last_drawn_tile and i == self.game.current_player) else '',
                     'riichi_turn': p.riichi_turn,
                 }
-                for p in self.game.players
+                for i, p in enumerate(self.game.players)
             ],
             'player_names': self.player_names,
             'current_player': self.game.current_player,
