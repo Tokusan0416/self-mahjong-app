@@ -123,23 +123,45 @@ Server runs on: `http://localhost:5000`
 
 ---
 
-### Phase M2: Frontend Setup ⏳ Pending
-**Estimated Time**: 3-4 hours
+### Phase M2: Frontend Setup ✅ COMPLETE
+**Completed**: 2026-03-13
+**Time Taken**: ~2 hours
 
 **Tasks**:
-- [ ] Initialize React + TypeScript + Vite project
-- [ ] Install dependencies (SocketIO, Zustand, TailwindCSS)
-- [ ] Configure TailwindCSS with blue theme
-- [ ] Create TypeScript type definitions
-- [ ] Set up WebSocket hook (`useSocket`)
-- [ ] Create API client (`gameApi`)
-- [ ] Test frontend independently
+- [x] Initialize React + TypeScript + Vite project
+- [x] Install dependencies (SocketIO, Zustand, TailwindCSS, axios, clsx)
+- [x] Configure TailwindCSS with blue theme
+- [x] Configure Vite with proxy settings
+- [x] Create TypeScript type definitions
+- [x] Set up WebSocket hook (`useSocket`)
+- [x] Create API client (`gameApi`)
+- [x] Create App component with connection test
+- [x] Test frontend independently
 
 **Deliverables**:
-- React app running on `http://localhost:5173`
-- WebSocket connection to backend
-- API client functional
-- TailwindCSS configured
+- ✅ React app running on `http://localhost:5173`
+- ✅ WebSocket connection to backend implemented
+- ✅ API client with 13 methods functional
+- ✅ TailwindCSS configured with primary blue theme
+- ✅ TypeScript types for all game entities
+- ✅ Connection status display
+- ✅ Game controls (New Game, Ping Test)
+- ✅ Game state visualization
+
+**How to Start Frontend**:
+```bash
+cd frontend
+npm run dev
+```
+
+Frontend: `http://localhost:5173`
+
+**Test the Connection**:
+1. Start backend on port 5000
+2. Start frontend on port 5173
+3. WebSocket status should show "✓ Connected"
+4. Click "New Game (半荘)" to start a game
+5. Game state should display with 4 players
 
 ---
 
@@ -197,9 +219,9 @@ Server runs on: `http://localhost:5000`
 
 ---
 
-## Current Priority: Phase M2
+## Current Priority: Phase M3
 
-**Phase M1 Completed!** Backend is ready. Next: Frontend setup.
+**Phase M1 & M2 Completed!** Backend and Frontend are ready. Next: Core UI Components.
 
 **Immediate Next Steps**:
 

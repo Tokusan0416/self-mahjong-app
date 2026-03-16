@@ -1,0 +1,10 @@
+PostCSS configuration has been updated.
+
+Please restart the Vite dev server:
+
+1. Stop the current server (Ctrl+C)
+2. Restart with: npm run dev
+
+Changes made:
+- Installed @tailwindcss/postcss package
+- Updated postcss.config.js to use new TailwindCSS PostCSS plugin

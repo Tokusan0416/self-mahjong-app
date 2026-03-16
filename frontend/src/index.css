@@ -1,0 +1,32 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  body {
+    @apply bg-gray-50 text-gray-900 antialiased;
+  }
+
+  * {
+    box-sizing: border-box;
+  }
+}
+
+@layer components {
+  /* Mahjong-specific styles */
+  .tile {
+    @apply inline-flex items-center justify-center border-2 border-gray-700 bg-white rounded shadow-sm;
+  }
+
+  .tile-clickable {
+    @apply cursor-pointer transition-transform hover:scale-105 hover:shadow-md;
+  }
+
+  .button-primary {
+    @apply px-4 py-2 bg-primary-600 text-white rounded hover:bg-primary-700 transition-colors;
+  }
+
+  .button-secondary {
+    @apply px-4 py-2 bg-gray-200 text-gray-800 rounded hover:bg-gray-300 transition-colors;
+  }
+}
