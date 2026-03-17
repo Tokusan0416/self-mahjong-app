@@ -131,46 +131,24 @@ export default function MahjongTable({
   const leftPlayer = 3;
 
   return (
-    <div className="bg-gradient-to-br from-green-800 to-green-900 rounded-xl shadow-2xl p-8 max-w-[1100px] mx-auto">
-      {/* Container with cross layout */}
-      <div className="grid grid-cols-[auto_minmax(600px,1fr)_auto] grid-rows-[auto_1fr_auto] gap-4 min-h-[700px] justify-items-center items-center">
-        {/* Top Player - Row 1, Col 2 */}
-        <div className="col-start-2 flex flex-col items-center gap-3">
-          <PlayerInfo
-            name={player_names[topPlayer]}
-            score={players[topPlayer].score}
-            wind={getPlayerWind(topPlayer, dealer)}
-            isDealer={topPlayer === dealer}
-            isCurrentPlayer={topPlayer === current_player}
-            isRiichi={players[topPlayer].is_riichi}
-            position="top"
-          />
-          <div className="transform rotate-180">
-            <Hand
-              hand={players[topPlayer].hand}
-              lastDrawnTile={players[topPlayer].last_drawn_tile}
-              melds={players[topPlayer].melds}
-              isCurrentPlayer={topPlayer === current_player}
-              isTenpai={false}
-              size="normal"
-              canRon={gameState.can_ron[topPlayer]}
-              canTsumo={gameState.can_tsumo && topPlayer === current_player}
-              canPon={gameState.can_pon[topPlayer]}
-              canChi={gameState.can_chi[topPlayer]}
-              canKan={gameState.can_kan[topPlayer]}
-              onDiscardTile={(tile, isDrawn) => onDiscardTile(topPlayer, tile, isDrawn)}
-              onDeclareRon={() => onDeclareRon(topPlayer)}
-              onDeclareTsumo={() => onDeclareTsumo(topPlayer)}
-              onDeclarePon={() => onDeclarePon(topPlayer)}
-              onDeclareChi={() => onDeclareChi(topPlayer)}
-              onDeclareKan={() => onDeclareKan(topPlayer)}
-              onPass={() => onPass(topPlayer)}
-            />
-          </div>
-        </div>
+    <div className="max-w-[1400px] mx-auto">
+      {/* Top Player Info - Outside table */}
+      <div className="flex justify-center mb-4">
+        <PlayerInfo
+          name={player_names[topPlayer]}
+          score={players[topPlayer].score}
+          wind={getPlayerWind(topPlayer, dealer)}
+          isDealer={topPlayer === dealer}
+          isCurrentPlayer={topPlayer === current_player}
+          isRiichi={players[topPlayer].is_riichi}
+          position="top"
+        />
+      </div>
 
-        {/* Left Player - Row 2, Col 1 */}
-        <div className="row-start-2 flex flex-row items-center gap-3">
+      {/* Middle Row: Left Player Info + Table + Right Player Info */}
+      <div className="flex items-center justify-center gap-4">
+        {/* Left Player Info */}
+        <div className="flex-shrink-0">
           <PlayerInfo
             name={player_names[leftPlayer]}
             score={players[leftPlayer].score}
@@ -180,103 +158,166 @@ export default function MahjongTable({
             isRiichi={players[leftPlayer].is_riichi}
             position="left"
           />
-          <div className="transform rotate-90" style={{ transformOrigin: 'center center' }}>
-            <Hand
-              hand={players[leftPlayer].hand}
-              lastDrawnTile={players[leftPlayer].last_drawn_tile}
-              melds={players[leftPlayer].melds}
-              isCurrentPlayer={leftPlayer === current_player}
-              isTenpai={false}
-              size="small"
-              canRon={gameState.can_ron[leftPlayer]}
-              canTsumo={gameState.can_tsumo && leftPlayer === current_player}
-              canPon={gameState.can_pon[leftPlayer]}
-              canChi={gameState.can_chi[leftPlayer]}
-              canKan={gameState.can_kan[leftPlayer]}
-              onDiscardTile={(tile, isDrawn) => onDiscardTile(leftPlayer, tile, isDrawn)}
-              onDeclareRon={() => onDeclareRon(leftPlayer)}
-              onDeclareTsumo={() => onDeclareTsumo(leftPlayer)}
-              onDeclarePon={() => onDeclarePon(leftPlayer)}
-              onDeclareChi={() => onDeclareChi(leftPlayer)}
-              onDeclareKan={() => onDeclareKan(leftPlayer)}
-              onPass={() => onPass(leftPlayer)}
-            />
-          </div>
         </div>
 
-        {/* Center - Discard area - Row 2, Col 2 */}
-        <div className="row-start-2 col-start-2 bg-green-700 rounded-lg p-4 flex items-center justify-center">
-          <div className="grid grid-cols-3 grid-rows-3 gap-4 w-full h-full">
-            {/* Top discards */}
-            <div className="col-start-2 row-start-1 flex justify-center items-start">
-              <DiscardArea
-                discards={players[topPlayer].discards}
-                playerName={player_names[topPlayer]}
-                position="top"
-              />
-            </div>
-
-            {/* Right discards */}
-            <div className="col-start-3 row-start-2 flex justify-end items-center">
-              <DiscardArea
-                discards={players[rightPlayer].discards}
-                playerName={player_names[rightPlayer]}
-                position="right"
-              />
-            </div>
-
-            {/* Bottom discards */}
-            <div className="col-start-2 row-start-3 flex justify-center items-end">
-              <DiscardArea
-                discards={players[bottomPlayer].discards}
-                playerName={player_names[bottomPlayer]}
-                position="bottom"
-              />
-            </div>
-
-            {/* Left discards */}
-            <div className="col-start-1 row-start-2 flex justify-start items-center">
-              <DiscardArea
-                discards={players[leftPlayer].discards}
-                playerName={player_names[leftPlayer]}
-                position="left"
-              />
-            </div>
-
-            {/* Center - Game info */}
-            <div className="col-start-2 row-start-2 flex items-center justify-center">
-              <div className="text-center text-white bg-green-800 bg-opacity-50 rounded-lg px-4 py-2">
-                <div className="text-xs opacity-75">Turn</div>
-                <div className="text-2xl font-bold">{gameState.turn_count}</div>
+        {/* Mahjong Table (Green Box) */}
+        <div className="bg-gradient-to-br from-green-800 to-green-900 rounded-xl shadow-2xl p-6">
+          <div className="grid grid-cols-[auto_1fr_auto] grid-rows-[auto_1fr_auto] gap-4 min-h-[600px] items-center justify-items-center">
+            {/* Top Player Hand - Row 1, Col 2 */}
+            <div className="col-start-2 flex justify-center">
+              <div className="transform rotate-180">
+                <Hand
+                  hand={players[topPlayer].hand}
+                  lastDrawnTile={players[topPlayer].last_drawn_tile}
+                  melds={players[topPlayer].melds}
+                  isCurrentPlayer={topPlayer === current_player}
+                  isTenpai={false}
+                  size="normal"
+                  canRon={gameState.can_ron[topPlayer]}
+                  canTsumo={gameState.can_tsumo && topPlayer === current_player}
+                  canPon={gameState.can_pon[topPlayer]}
+                  canChi={gameState.can_chi[topPlayer]}
+                  canKan={gameState.can_kan[topPlayer]}
+                  onDiscardTile={(tile, isDrawn) => onDiscardTile(topPlayer, tile, isDrawn)}
+                  onDeclareRon={() => onDeclareRon(topPlayer)}
+                  onDeclareTsumo={() => onDeclareTsumo(topPlayer)}
+                  onDeclarePon={() => onDeclarePon(topPlayer)}
+                  onDeclareChi={() => onDeclareChi(topPlayer)}
+                  onDeclareKan={() => onDeclareKan(topPlayer)}
+                  onPass={() => onPass(topPlayer)}
+                />
               </div>
             </div>
+
+            {/* Left Player Hand - Row 2, Col 1 */}
+            <div className="row-start-2 flex items-center justify-end">
+              <div className="transform rotate-90" style={{ transformOrigin: 'center center' }}>
+                <Hand
+                  hand={players[leftPlayer].hand}
+                  lastDrawnTile={players[leftPlayer].last_drawn_tile}
+                  melds={players[leftPlayer].melds}
+                  isCurrentPlayer={leftPlayer === current_player}
+                  isTenpai={false}
+                  size="small"
+                  canRon={gameState.can_ron[leftPlayer]}
+                  canTsumo={gameState.can_tsumo && leftPlayer === current_player}
+                  canPon={gameState.can_pon[leftPlayer]}
+                  canChi={gameState.can_chi[leftPlayer]}
+                  canKan={gameState.can_kan[leftPlayer]}
+                  onDiscardTile={(tile, isDrawn) => onDiscardTile(leftPlayer, tile, isDrawn)}
+                  onDeclareRon={() => onDeclareRon(leftPlayer)}
+                  onDeclareTsumo={() => onDeclareTsumo(leftPlayer)}
+                  onDeclarePon={() => onDeclarePon(leftPlayer)}
+                  onDeclareChi={() => onDeclareChi(leftPlayer)}
+                  onDeclareKan={() => onDeclareKan(leftPlayer)}
+                  onPass={() => onPass(leftPlayer)}
+                />
+              </div>
+            </div>
+
+            {/* Center - Discard area - Row 2, Col 2 */}
+            <div className="row-start-2 col-start-2 bg-green-700 rounded-lg p-4 flex items-center justify-center">
+              <div className="grid grid-cols-3 grid-rows-3 gap-4 w-full h-full">
+                {/* Top discards */}
+                <div className="col-start-2 row-start-1 flex justify-center items-start">
+                  <DiscardArea
+                    discards={players[topPlayer].discards}
+                    playerName={player_names[topPlayer]}
+                    position="top"
+                  />
+                </div>
+
+                {/* Right discards */}
+                <div className="col-start-3 row-start-2 flex justify-end items-center">
+                  <DiscardArea
+                    discards={players[rightPlayer].discards}
+                    playerName={player_names[rightPlayer]}
+                    position="right"
+                  />
+                </div>
+
+                {/* Bottom discards */}
+                <div className="col-start-2 row-start-3 flex justify-center items-end">
+                  <DiscardArea
+                    discards={players[bottomPlayer].discards}
+                    playerName={player_names[bottomPlayer]}
+                    position="bottom"
+                  />
+                </div>
+
+                {/* Left discards */}
+                <div className="col-start-1 row-start-2 flex justify-start items-center">
+                  <DiscardArea
+                    discards={players[leftPlayer].discards}
+                    playerName={player_names[leftPlayer]}
+                    position="left"
+                  />
+                </div>
+
+                {/* Center - Game info */}
+                <div className="col-start-2 row-start-2 flex items-center justify-center">
+                  <div className="text-center text-white bg-green-800 bg-opacity-50 rounded-lg px-4 py-2">
+                    <div className="text-xs opacity-75">Turn</div>
+                    <div className="text-2xl font-bold">{gameState.turn_count}</div>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            {/* Right Player Hand - Row 2, Col 3 */}
+            <div className="row-start-2 col-start-3 flex items-center justify-start">
+              <div className="transform -rotate-90" style={{ transformOrigin: 'center center' }}>
+                <Hand
+                  hand={players[rightPlayer].hand}
+                  lastDrawnTile={players[rightPlayer].last_drawn_tile}
+                  melds={players[rightPlayer].melds}
+                  isCurrentPlayer={rightPlayer === current_player}
+                  isTenpai={false}
+                  size="small"
+                  canRon={gameState.can_ron[rightPlayer]}
+                  canTsumo={gameState.can_tsumo && rightPlayer === current_player}
+                  canPon={gameState.can_pon[rightPlayer]}
+                  canChi={gameState.can_chi[rightPlayer]}
+                  canKan={gameState.can_kan[rightPlayer]}
+                  onDiscardTile={(tile, isDrawn) => onDiscardTile(rightPlayer, tile, isDrawn)}
+                  onDeclareRon={() => onDeclareRon(rightPlayer)}
+                  onDeclareTsumo={() => onDeclareTsumo(rightPlayer)}
+                  onDeclarePon={() => onDeclarePon(rightPlayer)}
+                  onDeclareChi={() => onDeclareChi(rightPlayer)}
+                  onDeclareKan={() => onDeclareKan(rightPlayer)}
+                  onPass={() => onPass(rightPlayer)}
+                />
+              </div>
+            </div>
+
+            {/* Bottom Player Hand - Row 3, Col 2 */}
+            <div className="row-start-3 col-start-2 flex justify-center">
+              <Hand
+                hand={players[bottomPlayer].hand}
+                lastDrawnTile={players[bottomPlayer].last_drawn_tile}
+                melds={players[bottomPlayer].melds}
+                isCurrentPlayer={bottomPlayer === current_player}
+                isTenpai={false}
+                size="normal"
+                canRon={gameState.can_ron[bottomPlayer]}
+                canTsumo={gameState.can_tsumo && bottomPlayer === current_player}
+                canPon={gameState.can_pon[bottomPlayer]}
+                canChi={gameState.can_chi[bottomPlayer]}
+                canKan={gameState.can_kan[bottomPlayer]}
+                onDiscardTile={(tile, isDrawn) => onDiscardTile(bottomPlayer, tile, isDrawn)}
+                onDeclareRon={() => onDeclareRon(bottomPlayer)}
+                onDeclareTsumo={() => onDeclareTsumo(bottomPlayer)}
+                onDeclarePon={() => onDeclarePon(bottomPlayer)}
+                onDeclareChi={() => onDeclareChi(bottomPlayer)}
+                onDeclareKan={() => onDeclareKan(bottomPlayer)}
+                onPass={() => onPass(bottomPlayer)}
+              />
+            </div>
           </div>
         </div>
 
-        {/* Right Player - Row 2, Col 3 */}
-        <div className="row-start-2 col-start-3 flex flex-row items-center gap-3">
-          <div className="transform -rotate-90" style={{ transformOrigin: 'center center' }}>
-            <Hand
-              hand={players[rightPlayer].hand}
-              lastDrawnTile={players[rightPlayer].last_drawn_tile}
-              melds={players[rightPlayer].melds}
-              isCurrentPlayer={rightPlayer === current_player}
-              isTenpai={false}
-              size="small"
-              canRon={gameState.can_ron[rightPlayer]}
-              canTsumo={gameState.can_tsumo && rightPlayer === current_player}
-              canPon={gameState.can_pon[rightPlayer]}
-              canChi={gameState.can_chi[rightPlayer]}
-              canKan={gameState.can_kan[rightPlayer]}
-              onDiscardTile={(tile, isDrawn) => onDiscardTile(rightPlayer, tile, isDrawn)}
-              onDeclareRon={() => onDeclareRon(rightPlayer)}
-              onDeclareTsumo={() => onDeclareTsumo(rightPlayer)}
-              onDeclarePon={() => onDeclarePon(rightPlayer)}
-              onDeclareChi={() => onDeclareChi(rightPlayer)}
-              onDeclareKan={() => onDeclareKan(rightPlayer)}
-              onPass={() => onPass(rightPlayer)}
-            />
-          </div>
+        {/* Right Player Info */}
+        <div className="flex-shrink-0">
           <PlayerInfo
             name={player_names[rightPlayer]}
             score={players[rightPlayer].score}
@@ -287,39 +328,19 @@ export default function MahjongTable({
             position="right"
           />
         </div>
+      </div>
 
-        {/* Bottom Player (Self) - Row 3, Col 2 */}
-        <div className="row-start-3 col-start-2 flex flex-col items-center gap-3">
-          <Hand
-            hand={players[bottomPlayer].hand}
-            lastDrawnTile={players[bottomPlayer].last_drawn_tile}
-            melds={players[bottomPlayer].melds}
-            isCurrentPlayer={bottomPlayer === current_player}
-            isTenpai={false}
-            size="normal"
-            canRon={gameState.can_ron[bottomPlayer]}
-            canTsumo={gameState.can_tsumo && bottomPlayer === current_player}
-            canPon={gameState.can_pon[bottomPlayer]}
-            canChi={gameState.can_chi[bottomPlayer]}
-            canKan={gameState.can_kan[bottomPlayer]}
-            onDiscardTile={(tile, isDrawn) => onDiscardTile(bottomPlayer, tile, isDrawn)}
-            onDeclareRon={() => onDeclareRon(bottomPlayer)}
-            onDeclareTsumo={() => onDeclareTsumo(bottomPlayer)}
-            onDeclarePon={() => onDeclarePon(bottomPlayer)}
-            onDeclareChi={() => onDeclareChi(bottomPlayer)}
-            onDeclareKan={() => onDeclareKan(bottomPlayer)}
-            onPass={() => onPass(bottomPlayer)}
-          />
-          <PlayerInfo
-            name={player_names[bottomPlayer]}
-            score={players[bottomPlayer].score}
-            wind={getPlayerWind(bottomPlayer, dealer)}
-            isDealer={bottomPlayer === dealer}
-            isCurrentPlayer={bottomPlayer === current_player}
-            isRiichi={players[bottomPlayer].is_riichi}
-            position="bottom"
-          />
-        </div>
+      {/* Bottom Player Info - Outside table */}
+      <div className="flex justify-center mt-4">
+        <PlayerInfo
+          name={player_names[bottomPlayer]}
+          score={players[bottomPlayer].score}
+          wind={getPlayerWind(bottomPlayer, dealer)}
+          isDealer={bottomPlayer === dealer}
+          isCurrentPlayer={bottomPlayer === current_player}
+          isRiichi={players[bottomPlayer].is_riichi}
+          position="bottom"
+        />
       </div>
     </div>
   );
