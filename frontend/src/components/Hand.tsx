@@ -3,6 +3,7 @@
  */
 import { useMemo } from 'react';
 import Tile from './Tile';
+import { Meld } from '../types/game';
 
 interface HandProps {
   /** Player's hand tiles (typically 13 or 14) */
@@ -10,7 +11,7 @@ interface HandProps {
   /** Last drawn tile (displayed separately) */
   lastDrawnTile: string;
   /** Player's melds (open sets) */
-  melds: string[];
+  melds: Meld[];
   /** Whether this is the current player (interactive mode) */
   isCurrentPlayer: boolean;
   /** Whether this hand is in tenpai */
@@ -132,7 +133,14 @@ export default function Hand({
           <div className="flex gap-2">
             {melds.map((meld, idx) => (
               <div key={`meld-${idx}`} className="flex gap-0.5 p-1 bg-gray-50 rounded border border-gray-200">
-                <span className="text-xs text-gray-600 px-1">{meld}</span>
+                <span className="text-xs text-gray-600 font-medium mr-1">{meld.type.toUpperCase()}</span>
+                {meld.tiles.map((tile, tileIdx) => (
+                  <Tile
+                    key={`meld-${idx}-tile-${tileIdx}`}
+                    tile={tile}
+                    size={size === 'small' ? 'small' : 'normal'}
+                  />
+                ))}
               </div>
             ))}
           </div>
@@ -140,7 +148,7 @@ export default function Hand({
       )}
 
       {/* Action buttons (shown when calls are available) */}
-      {isCurrentPlayer && hasCallAvailable && (
+      {hasCallAvailable && (
         <div className="flex gap-2 pt-2 border-t border-gray-200">
           {canRon && (
             <button
@@ -151,7 +159,7 @@ export default function Hand({
             </button>
           )}
 
-          {canTsumo && (
+          {canTsumo && isCurrentPlayer && (
             <button
               onClick={onDeclareTsumo}
               className="px-4 py-2 bg-green-600 text-white rounded hover:bg-green-700 font-medium transition-colors"

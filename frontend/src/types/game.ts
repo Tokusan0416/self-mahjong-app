@@ -2,10 +2,16 @@
  * TypeScript type definitions for Mahjong game state
  */
 
+export interface Meld {
+  type: string; // "pon", "chi", "kan"
+  tiles: string[];
+  from_player: number | null;
+}
+
 export interface Player {
   hand: string[];
   discards: string[];
-  melds: string[];
+  melds: Meld[];
   score: number;
   is_riichi: boolean;
   last_drawn_tile: string;

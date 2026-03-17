@@ -35,40 +35,117 @@ function App() {
   };
 
   // Game action handlers
-  const handleDiscardTile = (playerIdx: number, tile: string, isDrawn: boolean) => {
-    console.log(`Player ${playerIdx} discarded ${tile} (drawn: ${isDrawn})`);
-    // TODO: Call API to discard tile
-    // gameApi.discardTile(playerIdx, tile, isDrawn);
+  const handleDiscardTile = async (playerIdx: number, tile: string, isDrawn: boolean) => {
+    try {
+      console.log(`Player ${playerIdx} discarding ${tile} (drawn: ${isDrawn})`);
+      const response = await gameApi.discardTile(playerIdx, tile, isDrawn);
+      if (response.game_state) {
+        updateGameState(response.game_state);
+      }
+    } catch (err) {
+      console.error('Failed to discard tile:', err);
+      setApiError(err instanceof Error ? err.message : 'Failed to discard tile');
+    }
   };
 
-  const handleDeclareRon = (playerIdx: number) => {
-    console.log(`Player ${playerIdx} declares Ron`);
-    // TODO: Call API
+  const handleDeclareRon = async (playerIdx: number) => {
+    try {
+      console.log(`Player ${playerIdx} declaring Ron`);
+      const response = await gameApi.declareRon(playerIdx);
+      if (response.game_state) {
+        updateGameState(response.game_state);
+      }
+      // TODO: Show win info overlay
+      if (response.win_info) {
+        console.log('Win info:', response.win_info);
+      }
+    } catch (err) {
+      console.error('Failed to declare Ron:', err);
+      setApiError(err instanceof Error ? err.message : 'Failed to declare Ron');
+    }
   };
 
-  const handleDeclareTsumo = (playerIdx: number) => {
-    console.log(`Player ${playerIdx} declares Tsumo`);
-    // TODO: Call API
+  const handleDeclareTsumo = async (playerIdx: number) => {
+    try {
+      console.log(`Player ${playerIdx} declaring Tsumo`);
+      const response = await gameApi.declareTsumo(playerIdx);
+      if (response.game_state) {
+        updateGameState(response.game_state);
+      }
+      // TODO: Show win info overlay
+      if (response.win_info) {
+        console.log('Win info:', response.win_info);
+      }
+    } catch (err) {
+      console.error('Failed to declare Tsumo:', err);
+      setApiError(err instanceof Error ? err.message : 'Failed to declare Tsumo');
+    }
   };
 
-  const handleDeclarePon = (playerIdx: number) => {
-    console.log(`Player ${playerIdx} declares Pon`);
-    // TODO: Call API
+  const handleDeclarePon = async (playerIdx: number) => {
+    try {
+      console.log(`Player ${playerIdx} declaring Pon`);
+      const lastDiscard = gameState?.last_discard;
+      if (!lastDiscard) {
+        throw new Error('No discard available for Pon');
+      }
+      const response = await gameApi.declarePon(playerIdx, lastDiscard);
+      if (response.game_state) {
+        updateGameState(response.game_state);
+      }
+    } catch (err) {
+      console.error('Failed to declare Pon:', err);
+      setApiError(err instanceof Error ? err.message : 'Failed to declare Pon');
+    }
   };
 
-  const handleDeclareChi = (playerIdx: number) => {
-    console.log(`Player ${playerIdx} declares Chi`);
-    // TODO: Call API
+  const handleDeclareChi = async (playerIdx: number) => {
+    try {
+      console.log(`Player ${playerIdx} declaring Chi`);
+      const lastDiscard = gameState?.last_discard;
+      if (!lastDiscard) {
+        throw new Error('No discard available for Chi');
+      }
+      // TODO: Allow user to select chi pattern if multiple options
+      // For now, let backend choose the first valid pattern
+      const response = await gameApi.declareChi(playerIdx, lastDiscard, []);
+      if (response.game_state) {
+        updateGameState(response.game_state);
+      }
+    } catch (err) {
+      console.error('Failed to declare Chi:', err);
+      setApiError(err instanceof Error ? err.message : 'Failed to declare Chi');
+    }
   };
 
-  const handleDeclareKan = (playerIdx: number) => {
-    console.log(`Player ${playerIdx} declares Kan`);
-    // TODO: Call API
+  const handleDeclareKan = async (playerIdx: number) => {
+    try {
+      console.log(`Player ${playerIdx} declaring Kan`);
+      const lastDiscard = gameState?.last_discard;
+      if (!lastDiscard) {
+        throw new Error('No discard available for Kan');
+      }
+      const response = await gameApi.declareKan(playerIdx, lastDiscard);
+      if (response.game_state) {
+        updateGameState(response.game_state);
+      }
+    } catch (err) {
+      console.error('Failed to declare Kan:', err);
+      setApiError(err instanceof Error ? err.message : 'Failed to declare Kan');
+    }
   };
 
-  const handlePass = (playerIdx: number) => {
-    console.log(`Player ${playerIdx} passes`);
-    // TODO: Call API
+  const handlePass = async (playerIdx: number) => {
+    try {
+      console.log(`Player ${playerIdx} passing on calls`);
+      const response = await gameApi.passOnCalls();
+      if (response.game_state) {
+        updateGameState(response.game_state);
+      }
+    } catch (err) {
+      console.error('Failed to pass on calls:', err);
+      setApiError(err instanceof Error ? err.message : 'Failed to pass on calls');
+    }
   };
 
   return (
@@ -80,7 +157,7 @@ function App() {
             🀄 Mahjong Self-Play Simulator
           </h1>
           <p className="text-center text-sm text-gray-500 mt-1">
-            Flask + React Migration (Phase M2)
+            Flask + React Migration (Phase M4: Game Flow Integration)
           </p>
         </div>
       </header>
@@ -223,7 +300,7 @@ function App() {
 
       {/* Footer */}
       <footer className="mt-12 py-6 text-center text-sm text-gray-500">
-        <p>Phase M3: UI Components (Tile ✓, Hand ✓, Board ✓, MahjongTable ✓)</p>
+        <p>Phase M4: Game Flow Integration (API ✓, State Sync ✓)</p>
         <p className="mt-1">
           Backend: <code className="text-xs bg-gray-100 px-2 py-1 rounded">http://localhost:5000</code>
           {' | '}

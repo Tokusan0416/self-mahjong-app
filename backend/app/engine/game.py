@@ -5,6 +5,7 @@ Main game logic for Mahjong.
 from typing import List, Optional, Dict, Any
 from dataclasses import dataclass, field
 from datetime import datetime
+from collections import Counter
 import json
 
 from .tiles import Tile, create_tile_pool, sort_tiles

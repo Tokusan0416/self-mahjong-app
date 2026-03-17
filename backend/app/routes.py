@@ -319,10 +319,10 @@ def declare_chi():
         tile = data.get('tile')
         pattern = data.get('pattern', [])
 
-        if player_idx is None or tile is None or not pattern:
+        if player_idx is None or tile is None:
             return jsonify({
                 'success': False,
-                'error': 'Missing required fields: player_idx, tile, pattern'
+                'error': 'Missing required fields: player_idx, tile'
             }), 400
 
         game_state = game_manager.declare_chi(player_idx, tile, pattern)

@@ -488,37 +488,62 @@ npm run dev
 
 Frontend runs on: `http://localhost:5173`
 
-#### Phase M3: Core UI Components (Day 2)
-**Estimated Time**: 6-8 hours
+#### Phase M3: Core UI Components ✅ COMPLETE
+**Completed**: 2026-03-17
+**Time Taken**: ~8 hours (over multiple iterations)
 
-- [ ] **Tile Component** (1 hour)
-  - SVG image display with fallback
+- [x] **Tile Component** ✅
+  - SVG image display with fallback to text
   - Click handlers and hover effects
-  - Size variants (normal, small)
+  - Size variants (normal, small, large)
+  - Image path mapping for all tile types
 
-- [ ] **Hand Component** (2 hours)
-  - Display 13 tiles + drawn tile separately
+- [x] **Hand Component** ✅
+  - Display 13 tiles + drawn tile separately with yellow highlight
   - Interactive vs static modes
-  - Call buttons (Ron, Tsumo, Pon, Chi, Kan)
+  - Call buttons (Ron, Tsumo, Pon, Chi, Kan, Pass)
+  - Auto-sorted hand display
+  - Meld display support
+  - Size prop for different player positions
 
-- [ ] **Board Component** (1 hour)
-  - Current player indicator
+- [x] **Board Component** ✅
+  - Current player indicator with blue highlight
   - Wall remaining counter
-  - Dora indicators display
-  - Round information
+  - Dora indicators display with tile images
+  - Round information (東1局, 南3局, etc.)
+  - Honba and Riichi sticks counters
+  - Oorasu (final round) indicator
+  - Collapsible legend
 
-- [ ] **MahjongTable Component** (2-3 hours)
-  - Cross-pattern layout (上下左右)
-  - Four player positions
-  - Player-adjacent discards
-  - Responsive design
+- [x] **MahjongTable Component** ✅
+  - Cross-pattern layout (上下左右) with PlayerInfo outside green table
+  - Four player positions (Bottom/East, Right/South, Top/West, Left/North)
+  - Rotated hands for top/left/right players (180°, 90°, -90°)
+  - Center discard area with all players' discards
+  - Turn counter in center
+  - Different tile sizes (normal for top/bottom, small for left/right)
+  - PlayerInfo positioned outside the green mahjong table for better layout
+  - Responsive to 1400px max width
 
-- [ ] **Controls Component** (1 hour)
-  - New Game buttons (半荘/東風戦)
-  - Check Tenpai button
-  - Riichi declaration
-  - Pass on calls
-  - Export logs
+**Files Created**:
+- `frontend/src/components/Tile.tsx` - Tile display with SVG images
+- `frontend/src/components/Hand.tsx` - Hand display with interactions
+- `frontend/src/components/Board.tsx` - Game information display
+- `frontend/src/components/MahjongTable.tsx` - Main game table layout
+
+**Key Implementation Details**:
+- Tile images served from Flask backend via Vite proxy
+- TailwindCSS for styling with responsive design
+- TypeScript for type safety
+- Flexbox and CSS Grid for layouts
+- CSS transforms for rotated player hands
+
+**Notable Challenges Resolved**:
+- Layout issues with rotated hands exceeding container width
+- PlayerInfo positioning causing layout imbalance (solved by moving outside green table)
+- Hand tiles wrapping to multiple lines (solved with flex-nowrap and minmax grid columns)
+- Left/right player hand orientation (corrected rotation directions)
+- Current player's last_drawn_tile showing for all players (fixed in backend)
 
 #### Phase M4: Game Flow Integration (Day 3 - Morning)
 **Estimated Time**: 3-4 hours
@@ -573,7 +598,7 @@ Frontend runs on: `http://localhost:5173`
 - Testing strategy
 - Rollback plan
 
-**Status**: ✅ Phase M1 COMPLETE | ⏳ Ready for Phase M2 (Frontend Setup)
+**Status**: ✅ Phase M1-M3 COMPLETE | ⏳ Ready for Phase M4 (Game Flow Integration)
 
 ---
 
@@ -871,12 +896,12 @@ PARTITION BY DATE(timestamp);
 | Phase 3.1 (Reflex) | ⚠️ Partial | Tile graphics (image loading issues) | ⚠️ Blocked (2026-03-13) |
 | Phase 3.2 | ✅ Complete | Layout improvements (cross-pattern, center discard) | ✅ Done (2026-03-12) |
 | Phase 3.3 | ✅ Complete | Enhanced interactions (end screens, oorasu indicator) | ✅ Done (2026-03-12) |
-| **Phase M1** | **3-4 hours** | **Flask backend setup** | **⏳ In Progress** |
-| **Phase M2** | **3-4 hours** | **React frontend setup** | **⏳ Next** |
-| **Phase M3** | **6-8 hours** | **Core UI components** | **⏳ Planned** |
-| **Phase M4** | **3-4 hours** | **Game flow integration** | **⏳ Planned** |
+| **Phase M1** | **✅ 2 hours** | **Flask backend setup** | **✅ Complete (2026-03-13)** |
+| **Phase M2** | **✅ 2 hours** | **React frontend setup** | **✅ Complete (2026-03-13)** |
+| **Phase M3** | **✅ 8 hours** | **Core UI components** | **✅ Complete (2026-03-17)** |
+| **Phase M4** | **3-4 hours** | **Game flow integration** | **⏳ Next** |
 | **Phase M5** | **3-4 hours** | **End screens & polish** | **⏳ Planned** |
-| **Migration** | **3-4 days** | **Reflex → Flask/React** | **⚠️ In Progress (2026-03-13)** |
+| **Migration** | **~3 days** | **Reflex → Flask/React** | **⚠️ In Progress (M3/5 complete)** |
 | Phase 4 | 2-3 weeks | Data collection and BigQuery | ⏳ After Migration |
 | Phase 5 | 4-6 weeks | Advanced features and deployment | ⏳ Planned |
 | **Total** | **13-19 weeks** | From current state to production | In Progress |
@@ -1273,12 +1298,12 @@ PARTITION BY DATE(timestamp);
 | Phase 3.1 (Reflex) | ⚠️ 部分 | 牌グラフィック（画像読込問題） | ⚠️ ブロック (2026-03-13) |
 | Phase 3.2 | ✅ 完了 | レイアウト改善（十字配置、中央捨て牌） | ✅ 完了 (2026-03-12) |
 | Phase 3.3 | ✅ 完了 | 拡張インタラクション（終了画面、オーラス） | ✅ 完了 (2026-03-12) |
-| **Phase M1** | **3-4時間** | **Flask バックエンド構築** | **⏳ 進行中** |
-| **Phase M2** | **3-4時間** | **React フロントエンド構築** | **⏳ 次** |
-| **Phase M3** | **6-8時間** | **コアUIコンポーネント** | **⏳ 予定** |
-| **Phase M4** | **3-4時間** | **ゲームフロー統合** | **⏳ 予定** |
+| **Phase M1** | **✅ 2時間** | **Flask バックエンド構築** | **✅ 完了 (2026-03-13)** |
+| **Phase M2** | **✅ 2時間** | **React フロントエンド構築** | **✅ 完了 (2026-03-13)** |
+| **Phase M3** | **✅ 8時間** | **コアUIコンポーネント** | **✅ 完了 (2026-03-17)** |
+| **Phase M4** | **3-4時間** | **ゲームフロー統合** | **⏳ 次** |
 | **Phase M5** | **3-4時間** | **終了画面と仕上げ** | **⏳ 予定** |
-| **マイグレーション** | **3-4日** | **Reflex → Flask/React** | **⚠️ 進行中 (2026-03-13)** |
+| **マイグレーション** | **約3日** | **Reflex → Flask/React** | **⚠️ 進行中 (M3/5完了)** |
 | Phase 4 | 2-3週 | データ収集とBigQuery | ⏳ マイグレーション後 |
 | Phase 5 | 4-6週 | 高度な機能とデプロイ | ⏳ 予定 |
 | **合計** | **13-19週** | 現状からプロダクションまで | 進行中 |
